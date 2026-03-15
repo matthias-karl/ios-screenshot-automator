@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4A90D9"/>
+      <stop offset="100%" stop-color="#8A9BB5"/>
+    </linearGradient>
+    <!-- Screen gradient -->
+    <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F5F7FA"/>
+      <stop offset="100%" stop-color="#E8ECF1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded background -->
+  <rect width="256" height="256" rx="48" ry="48" fill="url(#bg)"/>
+
+  <!-- iPhone frame -->
+  <rect x="72" y="28" width="112" height="200" rx="18" ry="18"
+        fill="#1A1A2E" stroke="#2D2D44" stroke-width="2"/>
+
+  <!-- Screen area -->
+  <rect x="78" y="42" width="100" height="172" rx="4" ry="4"
+        fill="url(#screen)"/>
+
+  <!-- Dynamic Island -->
+  <rect x="108" y="33" width="40" height="10" rx="5" ry="5" fill="#0D0D1A"/>
+
+  <!-- Home indicator -->
+  <rect x="110" y="222" width="36" height="3.5" rx="1.75" ry="1.75" fill="#3A3A52"/>
+
+  <!-- === Skeleton App Content === -->
+
+  <!-- Status bar dots -->
+  <circle cx="86" cy="50" r="1.5" fill="#B0B8C4"/>
+  <circle cx="91" cy="50" r="1.5" fill="#B0B8C4"/>
+  <circle cx="96" cy="50" r="1.5" fill="#B0B8C4"/>
+  <rect x="152" y="48.5" width="12" height="3" rx="1.5" fill="#B0B8C4"/>
+  <rect x="166" y="48.5" width="6" height="3" rx="1.5" fill="#B0B8C4"/>
+
+  <!-- Nav bar title skeleton -->
+  <rect x="104" y="56" width="48" height="5" rx="2.5" fill="#C8CFD8"/>
+
+  <!-- Divider -->
+  <line x1="82" y1="66" x2="174" y2="66" stroke="#D8DDE4" stroke-width="0.5"/>
+
+  <!-- Hero image skeleton -->
+  <rect x="86" y="72" width="84" height="40" rx="6" ry="6" fill="#D0D7E0"/>
+  <!-- Image icon placeholder -->
+  <polygon points="112,96 120,86 128,94 132,90 140,100 112,100"
+           fill="#B8C2CE" opacity="0.6"/>
+  <circle cx="122" cy="82" r="4" fill="#B8C2CE" opacity="0.6"/>
+
+  <!-- Text skeleton lines -->
+  <rect x="86" y="120" width="70" height="4" rx="2" fill="#CBD2DB"/>
+  <rect x="86" y="128" width="84" height="4" rx="2" fill="#D5DBE3"/>
+  <rect x="86" y="136" width="56" height="4" rx="2" fill="#D5DBE3"/>
+
+  <!-- List items -->
+  <!-- Item 1 -->
+  <rect x="86" y="148" width="84" height="20" rx="4" ry="4"
+        fill="#FFFFFF" opacity="0.6"/>
+  <circle cx="96" cy="158" r="5" fill="#D0D7E0"/>
+  <rect x="106" y="154" width="40" height="3.5" rx="1.75" fill="#C0C8D2"/>
+  <rect x="106" y="160" width="28" height="3" rx="1.5" fill="#D8DDE4"/>
+
+  <!-- Item 2 -->
+  <rect x="86" y="172" width="84" height="20" rx="4" ry="4"
+        fill="#FFFFFF" opacity="0.6"/>
+  <circle cx="96" cy="182" r="5" fill="#D0D7E0"/>
+  <rect x="106" y="178" width="36" height="3.5" rx="1.75" fill="#C0C8D2"/>
+  <rect x="106" y="184" width="32" height="3" rx="1.5" fill="#D8DDE4"/>
+
+  <!-- Tab bar -->
+  <rect x="78" y="198" width="100" height="16" rx="0" ry="0" fill="#FFFFFF" opacity="0.5"/>
+  <line x1="78" y1="198" x2="178" y2="198" stroke="#D0D7E0" stroke-width="0.5"/>
+  <!-- Tab icons (small rectangles as placeholders) -->
+  <rect x="92" y="201" width="8" height="6" rx="1.5" fill="#A8B2BE"/>
+  <rect x="92" y="209" width="8" height="2" rx="1" fill="#C0C8D2"/>
+  <rect x="118" y="201" width="8" height="6" rx="1.5" fill="#4A90D9"/>
+  <rect x="118" y="209" width="8" height="2" rx="1" fill="#4A90D9"/>
+  <rect x="144" y="201" width="8" height="6" rx="1.5" fill="#A8B2BE"/>
+  <rect x="144" y="209" width="8" height="2" rx="1" fill="#C0C8D2"/>
+
+  <!-- Subtle camera icon overlay in top-right corner -->
+  <g transform="translate(200, 36)" opacity="0.25">
+    <rect x="0" y="4" width="20" height="14" rx="3" fill="#FFFFFF"/>
+    <polygon points="14,8 20,4 20,22 14,18" fill="#FFFFFF"/>
+    <circle cx="9" cy="11" r="3.5" fill="none" stroke="#8A9BB5" stroke-width="1.5"/>
+  </g>
+</svg>

@@ -33,7 +33,7 @@
    - [Compositing Pipeline](#64-compositing-pipeline)
    - [Apple Device Presets](#65-apple-device-presets)
    - [CLI Reference](#66-cli-reference)
-7. [Stage 4 — Wrapper Script](#7-stage-4--wrapper-script)
+7. [Stage 4 — Template Script](#7-stage-4--template-script)
 8. [Integration Example (Plantner)](#8-integration-example-plantner)
 9. [Apple App Store Requirements](#9-apple-app-store-requirements)
 10. [File Reference](#10-file-reference)
@@ -108,8 +108,8 @@ ios-screenshot-automator/
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    capture_app_screenshots.sh                    │
-│              (Project-specific wrapper script)                   │
+│                    capture_screenshots.sh                        │
+│             (Project-specific template script)                   │
 ├─────────────────────────┬───────────────────────────────────────┤
 │                         │                                       │
 │  ┌──────────────────────▼──────────────────────┐                │
@@ -761,25 +761,29 @@ swift compose_mockup.swift \
 
 ---
 
-## 7. Stage 4 — Wrapper Script
+## 7. Stage 4 — Template Script
 
-The wrapper script (`capture_app_screenshots.sh`) combines stages 2 and 3 into a single command. It is project-specific and configured with all paths, device mappings, and design settings.
+The template script (`Templates/capture_screenshots_template.sh`) combines stages 2 and 3 into a single command. Copy it into your project as `scripts/capture_screenshots.sh` and fill in the `← CHANGE` fields. It is project-specific and configured with all paths, device mappings, and design settings.
+
+> **Device frame PNGs are not included.** Download them from [Apple Design Resources](https://developer.apple.com/design/resources/) or similar and place them in your project repo (e.g. `Files/`). The frame must have a transparent screen area.
 
 ### Configuration
 
 ```bash
-# Device frames
-IPHONE_FRAME="$PROJECT_ROOT/Files/iPhone 17 Pro - Silver - Portrait.png"
-IPAD_FRAME="$PROJECT_ROOT/Files/iPad Pro 13 - M4 - Silver - Portrait.png"
+# Project settings
+APP_NAME="MyApp"                        # ← CHANGE
+SCHEME="MyApp"                          # ← CHANGE
+TEST_TARGET="MyAppUITests"              # ← CHANGE
+TEST_CLASS="MyAppScreenshotTest"        # ← CHANGE
 
 # Gradient colors
-GRADIENT_START="#79b474"
-GRADIENT_END="#1f881b"
+GRADIENT_START="#79b474"                # ← CHANGE
+GRADIENT_END="#1f881b"                  # ← CHANGE
 
-# Device mapping: folder_name | compose_preset | frame_path | margin
+# Device entries: "SimulatorName|FramePath|DevicePreset|Margin"
 DEVICES=(
-    "iPhone_17_Pro|iphone69|$IPHONE_FRAME|30"
-    "iPad_Pro_13-inch_(M5)|ipad13|$IPAD_FRAME|70"
+    "iPhone 16 Pro Max|Files/iPhone16ProMax-Frame.png|iphone69|30"
+    "iPad Pro 13-inch (M4)|Files/iPadPro13-Frame.png|ipad13|70"
 )
 ```
 
@@ -787,37 +791,35 @@ DEVICES=(
 
 ```bash
 # Full pipeline: capture screenshots + generate mockups
-./scripts/capture_app_screenshots.sh
+./scripts/capture_screenshots.sh
 
 # Only generate mockups from existing screenshots
-./scripts/capture_app_screenshots.sh --mockups-only
+./scripts/capture_screenshots.sh --mockups-only
 
 # iPhone only
-./scripts/capture_app_screenshots.sh --iphone-only
-
-# Multiple languages
-./scripts/capture_app_screenshots.sh --languages "en,de"
+./scripts/capture_screenshots.sh --iphone-only
 ```
 
 ### Mockup Generation Loop
 
-The wrapper iterates over every device configuration and every screenshot:
+The template iterates over every device configuration and every screenshot:
 
 ```
 For each DEVICE in DEVICES:
   │
-  ├── Parse: folder_name | preset | frame_path | margin
+  ├── Parse: SimulatorName | FramePath | DevicePreset | Margin
+  ├── Sanitize SimulatorName → folder name (spaces → underscores)
   ├── Find all *.png in screenshots/<folder_name>/
   │
   └── For each screenshot:
       └── swift compose_mockup.swift \
-            --frame <frame_path> \
+            --frame <FramePath> \
             --screenshot <screenshot_path> \
             --output "Appstore Mockups/<folder_name>/<filename>" \
-            --device <preset> \
-            --margin <margin> \
-            --gradient-start "#79b474" \
-            --gradient-end "#1f881b"
+            --device <DevicePreset> \
+            --margin <Margin> \
+            --gradient-start "$GRADIENT_START" \
+            --gradient-end "$GRADIENT_END"
 ```
 
 ---
@@ -925,6 +927,7 @@ Appstore Mockups/
 
 | File | Location | Description |
 |------|----------|-------------|
+| `capture_screenshots_template.sh` | `Templates/` | Template script — copy into your project and fill in `← CHANGE` fields |
 | `ExampleScreenshotTest.swift` | `Examples/` | Example subclass for a fictional 3-tab app |
 | `MockDataProviderExample.swift` | `Templates/` | Template for mock data injection |
 

@@ -16,7 +16,7 @@ This guide walks you through integrating the screenshot & mockup pipeline into y
    - [Step 3: Prepare Your App for Testing](#step-3-prepare-your-app-for-testing)
    - [Step 4: Add Mock Data](#step-4-add-mock-data)
    - [Step 5: Add Device Frames](#step-5-add-device-frames)
-   - [Step 6: Create the Wrapper Script](#step-6-create-the-wrapper-script)
+   - [Step 6: Copy the Template Script](#step-6-copy-the-template-script)
    - [Step 7: Run It](#step-7-run-it)
 4. [Usage Modes](#4-usage-modes)
 5. [Customization](#5-customization)
@@ -28,7 +28,7 @@ This guide walks you through integrating the screenshot & mockup pipeline into y
    - [Screenshot Directory](#screenshot-directory)
 6. [Adding More Screens](#6-adding-more-screens)
 7. [iPad Support](#7-ipad-support)
-8. [Wrapper Script Template](#8-wrapper-script-template)
+8. [Template Script Reference](#8-template-script-reference)
 9. [CI/CD Integration](#9-cicd-integration)
 10. [FAQ](#10-faq)
 
@@ -316,15 +316,18 @@ MyApp/
 > - Should include the device bezel, buttons, notch/Dynamic Island
 > - Any resolution works — the script scales automatically
 
-### Step 6: Create the Wrapper Script
+### Step 6: Copy the Template Script
 
-Create `scripts/capture_screenshots.sh` in your project. Use the [template below](#8-wrapper-script-template) as a starting point and fill in your project-specific values.
-
-Make it executable:
+Copy the template script into your project and fill in the `← CHANGE` fields:
 
 ```bash
+mkdir -p scripts
+cp path/to/ios-screenshot-automator/Templates/capture_screenshots_template.sh \
+    scripts/capture_screenshots.sh
 chmod +x scripts/capture_screenshots.sh
 ```
+
+See the [template header](../Templates/capture_screenshots_template.sh) for the full field reference, or the [inline template below](#8-template-script-reference).
 
 ### Step 7: Run It
 
@@ -372,7 +375,7 @@ chmod +x scripts/capture_screenshots.sh
 
 ## 4. Usage Modes
 
-The wrapper script supports several execution modes:
+The template script (your local `scripts/capture_screenshots.sh`) supports several execution modes:
 
 ### Full Pipeline (default)
 
@@ -420,9 +423,9 @@ swift ios-screenshot-automator/Scripts/compose_mockup.swift \
     --margin 50
 ```
 
-### Run Screenshot Tests Directly
+### Run Screenshot Tests Directly (advanced)
 
-Use `run_screenshots.sh` without mockup generation:
+If you only need raw screenshots without mockups, you can call `run_screenshots.sh` directly from the SPM checkout. Normally the template script handles this for you — use this only for debugging or CI customisation:
 
 ```bash
 ios-screenshot-automator/Scripts/run_screenshots.sh \
@@ -441,7 +444,7 @@ ios-screenshot-automator/Scripts/run_screenshots.sh \
 
 ### Gradient Background
 
-Set gradient colors and angle in the wrapper script:
+Set gradient colors and angle in the template script:
 
 ```bash
 GRADIENT_START="#667EEA"    # Top/left color (hex)
@@ -473,7 +476,7 @@ The gradient angle (default: `135°`) controls the direction:
 
 ### Device Frames & Margins
 
-Each device entry in the wrapper script has four fields:
+Each device entry in the template script has four fields:
 
 ```bash
 # Format: folder_name | device_preset | frame_path | margin_px
@@ -541,7 +544,7 @@ final class MyAppScreenshotTest: ScreenshotTestBase {
 Pass language codes to capture localized screenshots:
 
 ```bash
-# In the wrapper script:
+# In the template script:
 --languages "en,de,fr"
 
 # Or directly:
@@ -692,9 +695,9 @@ if cells.count > 1, cells[1].exists {
 
 ---
 
-## 8. Wrapper Script Template
+## 8. Template Script Reference
 
-Copy this template to `scripts/capture_screenshots.sh` and fill in your project-specific values. Lines marked with `# ← CHANGE` need to be updated.
+The template is available at `Templates/capture_screenshots_template.sh`. Copy it to `scripts/capture_screenshots.sh` in your project and fill in the fields marked `← CHANGE`. The inline version below is for reference:
 
 ```bash
 #!/usr/bin/env bash
@@ -949,11 +952,11 @@ fi
 
 ### Q: Do I need both `run_screenshots.sh` and `compose_mockup.swift`?
 
-**A:** Only if you want mockups. If you just need raw screenshots without device frames, you only need `run_screenshots.sh`. The wrapper script (`capture_screenshots.sh`) combines both.
+**A:** You don't interact with them directly. The template script (`capture_screenshots_template.sh`) calls both automatically. If you only want raw screenshots without device frames, simply leave the `DEVICES` frame paths empty or comment them out — the template's Step 2 (mockup generation) will skip devices without a valid frame.
 
 ### Q: Can I use my own device frames?
 
-**A:** Yes. Any PNG with a transparent screen area works. The script auto-detects where the screen is. Place the PNG anywhere and reference it in the wrapper script's `IPHONE_FRAME`/`IPAD_FRAME` variables.
+**A:** Yes. Any PNG with a transparent screen area works. The compose script auto-detects where the screen is. Place the PNG in your project repo (e.g. `Files/`) and reference it in the template script's `DEVICES` array.
 
 ### Q: Why are my iPad screenshots not navigating correctly?
 
@@ -977,14 +980,11 @@ fi
 
 ### Q: How do I add a new device?
 
-**A:** Three steps:
-1. Add the device to the `--devices` list in the wrapper script
-2. Add a corresponding entry in the `DEVICES` array with the correct preset, frame, and margin
-3. Get a device frame PNG for the new device
+**A:** Add a new entry to the `DEVICES` array in your template script with the correct simulator name, frame path, device preset, and margin. See the [template header](../Templates/capture_screenshots_template.sh) for the device entry format.
 
 ### Q: What if a simulator isn't available?
 
-**A:** The script automatically tries fallback devices. For example, if "iPhone 17 Pro Max" isn't installed, it tries "iPhone 16 Pro Max", then "iPhone 14 Plus". You can customize the fallback list in `run_screenshots.sh`.
+**A:** The internal `run_screenshots.sh` script automatically tries fallback devices. For example, if "iPhone 17 Pro Max" isn't installed, it tries "iPhone 16 Pro Max", then "iPhone 14 Plus". The fallback list is defined inside `run_screenshots.sh`.
 
 ### Q: Can I use JPEG instead of PNG for the output?
 

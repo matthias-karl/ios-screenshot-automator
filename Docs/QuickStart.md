@@ -111,47 +111,54 @@ init() {
 
 ---
 
-## 4. Copy and run the script
+## 4. Copy the template script and configure it
+
+Copy the **template** into your project — do **not** copy `run_screenshots.sh` or `compose_mockup.swift` directly. The template auto-discovers the package in your Xcode DerivedData and calls the bundled scripts for you.
 
 ```bash
-# Copy the runner script into your project
 mkdir -p scripts
-cp ios-screenshot-automator/Scripts/run_screenshots.sh scripts/
-chmod +x scripts/run_screenshots.sh
-
-# Run it
-./scripts/run_screenshots.sh \
-    --project MyApp.xcodeproj \
-    --scheme MyApp \
-    --test-target MyAppUITests \
-    --test-class MyAppScreenshotTest \
-    --output screenshots
+cp path/to/ios-screenshot-automator/Templates/capture_screenshots_template.sh \
+    scripts/capture_screenshots.sh
+chmod +x scripts/capture_screenshots.sh
 ```
 
-Screenshots land in `screenshots/<Device_Name>/`.
-
----
-
-## 5. (Optional) Generate App Store mockups
-
-If you want device-frame mockups with gradient backgrounds, you also need:
-
-1. **Device frame PNGs** — download from [Apple Design Resources](https://developer.apple.com/design/resources/) and place them in your project repo (e.g. `Files/`). These are **not** included in the package.
-2. **The compose script** — already included at `Scripts/compose_mockup.swift`.
-
-Run it for a single screenshot:
+Open `scripts/capture_screenshots.sh` and fill in every field marked `← CHANGE`:
 
 ```bash
-swift ios-screenshot-automator/Scripts/compose_mockup.swift \
-    --frame "Files/iPhone 17 Pro - Silver - Portrait.png" \
-    --screenshot screenshots/iPhone_17_Pro/iPhone_17_Pro_01_Home.png \
-    --output mockups/01_Home.png \
-    --device iphone69 \
-    --gradient-start '#667EEA' \
-    --gradient-end '#764BA2'
+APP_NAME="MyApp"                        # ← your .xcodeproj name (without extension)
+SCHEME="MyApp"                          # ← Xcode scheme
+TEST_TARGET="MyAppUITests"              # ← UI test target name
+TEST_CLASS="MyAppScreenshotTest"        # ← your XCTestCase subclass
+TEST_METHOD="testTakeAllScreenshots"    # ← test method (usually keep as-is)
+LANGUAGES="en"                          # ← comma-separated, e.g. "en,de,fr"
+
+GRADIENT_START="#667EEA"                # ← mockup gradient top color
+GRADIENT_END="#764BA2"                  # ← mockup gradient bottom color
+
+DEVICES=(
+    "iPhone 16 Pro Max|Files/iPhone16ProMax-Frame.png|iphone69|30"
+    "iPhone 16 Pro|Files/iPhone16Pro-Frame.png|iphone67|30"
+    # "iPad Pro 13-inch (M4)|Files/iPadPro13-Frame.png|ipad13|70"
+)
 ```
 
-Or create a wrapper script to batch all screenshots — see [`Docs/DeveloperHowto.md` § Wrapper Script Template](DeveloperHowto.md#8-wrapper-script-template).
+> **Device frame PNGs are not included.** Download them from
+> [Apple Design Resources](https://developer.apple.com/design/resources/),
+> [Figma Community](https://www.figma.com/community) or similar, and place
+> them in your project repo (e.g. `Files/`). The frame must have a
+> transparent screen area.
+
+Then run:
+
+```bash
+./scripts/capture_screenshots.sh               # full pipeline: capture + mockups
+./scripts/capture_screenshots.sh --mockups-only # re-generate mockups from existing screenshots
+./scripts/capture_screenshots.sh --iphone-only  # skip iPad devices
+```
+
+Screenshots land in `screenshots/<Device_Name>/`, mockups in `Appstore Mockups/<Device_Name>/`.
+
+See the [template header](../Templates/capture_screenshots_template.sh) for the full device-entry format, preset list, and setup guide.
 
 ---
 
@@ -162,8 +169,9 @@ Or create a wrapper script to batch all screenshots — see [`Docs/DeveloperHowt
 | Base class to subclass | `ScreenshotTestBase` (in `Sources/ScreenshotTestBase.swift`) |
 | Override this method | `captureAllScreens()` |
 | Override for iPad | `tabLabels(forIndex:)` |
-| Shell runner | `Scripts/run_screenshots.sh` |
-| Mockup composer | `Scripts/compose_mockup.swift` |
+| Template script | `Templates/capture_screenshots_template.sh` — copy into your project |
+| Shell runner (internal) | `Scripts/run_screenshots.sh` — called by the template, don't copy |
+| Mockup composer (internal) | `Scripts/compose_mockup.swift` — called by the template, don't copy |
 | Example test | `Examples/ExampleScreenshotTest.swift` |
 | Mock data template | `Templates/MockDataProviderExample.swift` |
 | Full docs | `Docs/DeveloperHowto.md` · `Docs/ScreenshotPipeline.md` |
@@ -177,19 +185,14 @@ Or create a wrapper script to batch all screenshots — see [`Docs/DeveloperHowt
 | `-DISABLE_ANIMATIONS` | Turn off Core Animation |
 | `-SKIP_ONBOARDING` | Skip onboarding / tutorial |
 
-### Key script flags
+### Template script flags
 
-| Flag | Example |
+| Flag | Purpose |
 |------|---------|
-| `--project` | `--project MyApp.xcodeproj` |
-| `--scheme` | `--scheme MyApp` |
-| `--test-target` | `--test-target MyAppUITests` |
-| `--test-class` | `--test-class MyAppScreenshotTest` |
-| `--output` | `--output screenshots` |
-| `--devices` | `--devices "iPhone 17 Pro Max,iPad Pro 13-inch (M5)"` |
-| `--languages` | `--languages "en,de"` |
-| `--iphone-only` | skip iPad devices |
+| *(no flags)* | Full pipeline — capture screenshots + generate mockups |
+| `--mockups-only` | Skip capture, regenerate mockups from existing screenshots |
+| `--iphone-only` | Skip iPad devices |
 
 ---
 
-**That's it.** For customisation (gradients, timing, composer config, CI/CD) see the full [Developer How-To](DeveloperHowto.md).
+**That's it.** For customisation (timing, composer config, CI/CD) see the full [Developer How-To](DeveloperHowto.md). For the complete device-entry format and preset list, see the [template header](../Templates/capture_screenshots_template.sh).
