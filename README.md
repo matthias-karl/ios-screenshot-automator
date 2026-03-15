@@ -1,6 +1,10 @@
 # ios-screenshot-automator
 
-A self-contained, drop-in toolkit for automating App Store screenshot capture across multiple iOS simulators. Copy two files into your project, subclass one class, and run a single shell script to produce pixel-perfect screenshots for every device size required by App Store Connect.
+A self-contained, drop-in toolkit for automating App Store screenshot capture across multiple iOS simulators. Add the Swift package, subclass one class, copy the template script, and run — pixel-perfect screenshots for every device size required by App Store Connect.
+
+<p align="center">
+  <img src="Icon/icon.png" alt="ios-screenshot-automator icon" width="128">
+</p>
 
 > **New here?** Jump straight to the [Quick Start Guide](Docs/QuickStart.md) — zero to screenshots in 5 minutes.
 
@@ -29,7 +33,7 @@ A self-contained, drop-in toolkit for automating App Store screenshot capture ac
 
 ## What it is
 
-`ios-screenshot-automator` is a generic XCUITest-based screenshot automation framework extracted from a production iOS app. It provides a reusable base class (`ScreenshotTestBase`) that handles device detection, tab navigation, sheet management, edit-mode recovery, and screenshot saving. You subclass it, describe your app's screens in `captureAllScreens()`, and the included shell script (`run_screenshots.sh`) drives `xcodebuild` across every simulator that App Store Connect requires—including the 6.9-inch iPhone and the 13-inch iPad mandatory sizes.
+`ios-screenshot-automator` is a generic XCUITest-based screenshot automation framework extracted from a production iOS app. It provides a reusable base class (`ScreenshotTestBase`) that handles device detection, tab navigation, sheet management, edit-mode recovery, and screenshot saving. You subclass it, describe your app's screens in `captureAllScreens()`, copy the included template script into your project, fill in your project-specific values, and run it — the template auto-discovers the package and drives `xcodebuild` across every simulator that App Store Connect requires, including the 6.9-inch iPhone and the 13-inch iPad mandatory sizes.
 
 ---
 
@@ -182,15 +186,20 @@ See [App Integration](#app-integration) for details on how to handle the four la
 
 Copy `Templates/MockDataProviderExample.swift` into your **main app target** and fill in your data. See [Mock Data Setup](#mock-data-setup).
 
-### Step 5 – Copy and run the script
+### Step 5 – Copy the template script and run
 
 ```bash
-cp path/to/ios-screenshot-automator/Scripts/run_screenshots.sh scripts/
-chmod +x scripts/run_screenshots.sh
+# Copy the template — don't copy run_screenshots.sh directly
+mkdir -p scripts
+cp path/to/ios-screenshot-automator/Templates/capture_screenshots_template.sh \
+    scripts/capture_screenshots.sh
+chmod +x scripts/capture_screenshots.sh
 
-# Run from your project root
-./scripts/run_screenshots.sh --scheme MyApp --test-class MyAppScreenshotTest
+# Fill in the ← CHANGE fields, then run from your project root
+./scripts/capture_screenshots.sh
 ```
+
+The template auto-discovers the package in DerivedData and calls the bundled scripts for you. See the [template header](Templates/capture_screenshots_template.sh) for the full setup guide.
 
 ---
 
@@ -236,50 +245,71 @@ struct MyApp: App {
 
 ## Script Usage
 
-```
-./run_screenshots.sh [OPTIONS]
+The recommended workflow uses the **template script** (`Templates/capture_screenshots_template.sh`). Copy it into your project, fill in the `← CHANGE` fields, and run it. The template auto-discovers `run_screenshots.sh` and `compose_mockup.swift` from the SPM checkout in DerivedData — you never copy those scripts directly.
+
+```bash
+./scripts/capture_screenshots.sh [OPTIONS]
 ```
 
-### Options
+### Template configuration (edit once)
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--project <path>` | `Plantner.xcodeproj` | Path to the `.xcodeproj` file |
-| `--scheme <name>` | `Plantner` | Xcode scheme to build |
-| `--test-target <name>` | `PlantnerUITests` | UI test bundle target name |
-| `--test-class <name>` | `PlantnerScreenshotTest` | XCTest class name |
-| `--output <path>` | `screenshots` | Output directory for screenshots and result bundles |
-| `--devices <d1,d2,...>` | iPhone 17 Pro Max, iPhone 17 Pro, iPad Pro 13-inch (M5) | Comma-separated list of simulator device names |
-| `--languages <l1,l2,...>` | `en` | Comma-separated list of language codes |
-| `--iphone-only` | — | Use default iPhone-only device list |
-| `--help`, `-h` | — | Print help and exit |
+| Field | Description |
+|-------|-------------|
+| `APP_NAME` | Your `.xcodeproj` name (without extension) |
+| `SCHEME` | Xcode scheme to build |
+| `TEST_TARGET` | UI test target name |
+| `TEST_CLASS` | XCTestCase subclass name |
+| `TEST_METHOD` | Test method (default: `testTakeAllScreenshots`) |
+| `LANGUAGES` | Comma-separated language codes (e.g. `"en,de,fr"`) |
+| `DEVICES` | Array of device entries (see format below) |
+| `GRADIENT_START` / `GRADIENT_END` | Hex colours for mockup gradient background |
+| `SCREENSHOTS_DIR` | Raw screenshot output folder (default: `screenshots`) |
+| `MOCKUPS_DIR` | Mockup output folder (default: `Appstore Mockups`) |
+
+### Device entry format
+
+```
+"SimulatorName|FramePath|DevicePreset|Margin"
+```
+
+| Part | Example |
+|------|---------|
+| `SimulatorName` | `iPhone 16 Pro Max` — as shown by `xcrun simctl list devices` |
+| `FramePath` | `Files/iPhone16ProMax-Frame.png` — relative to project root |
+| `DevicePreset` | `iphone69`, `iphone67`, `ipad13`, etc. (see template for full list) |
+| `Margin` | `30` (iPhone) / `70` (iPad) — pixels between frame and canvas edge |
+
+> **Device frame PNGs are not included.** Download from [Apple Design Resources](https://developer.apple.com/design/resources/) or similar and place them in your project repo. The frame must have a transparent screen area.
+
+### Runtime flags
+
+| Flag | Purpose |
+|------|---------|
+| *(no flags)* | Full pipeline — capture screenshots + generate mockups |
+| `--mockups-only` | Skip capture, regenerate mockups from existing screenshots |
+| `--iphone-only` | Skip iPad devices |
 
 ### Examples
 
 ```bash
-# Minimal – uses Plantner defaults
-./run_screenshots.sh
+# Full pipeline (capture + mockups)
+./scripts/capture_screenshots.sh
 
-# Explicit project and scheme
-./run_screenshots.sh --project MyApp.xcodeproj --scheme MyApp
+# Re-generate mockups from existing screenshots
+./scripts/capture_screenshots.sh --mockups-only
 
-# iPhone screenshots only
-./run_screenshots.sh --scheme MyApp --iphone-only
-
-# Custom test class and output directory
-./run_screenshots.sh \
-  --scheme MyApp \
-  --test-class MyAppScreenshotTest \
-  --output /tmp/app-store-screenshots
-
-# Multiple languages
-./run_screenshots.sh --scheme MyApp --languages "en,de"
-
-# Custom device list
-./run_screenshots.sh \
-  --scheme MyApp \
-  --devices "iPhone 16 Pro Max,iPhone 16 Pro"
+# iPhone devices only
+./scripts/capture_screenshots.sh --iphone-only
 ```
+
+### Internal scripts (for reference)
+
+The template calls these automatically — you do **not** run them directly:
+
+| Script | Purpose |
+|--------|---------|
+| `Scripts/run_screenshots.sh` | Boots simulators and runs `xcodebuild test` across devices/languages |
+| `Scripts/compose_mockup.swift` | Overlays a screenshot onto a device frame with a gradient background |
 
 ---
 
@@ -549,7 +579,7 @@ Add the package via SPM (see [Installation](#installation)). Import `ScreenshotA
 ### Option B – File copy
 
 1. Copy `Sources/ScreenshotTestBase.swift` and `Sources/ScreenshotComposer.swift` into your UITest target.
-2. Copy `Scripts/run_screenshots.sh` into your project's `scripts/` folder.
+2. Copy `Templates/capture_screenshots_template.sh` into your project's `scripts/` folder and fill in the `← CHANGE` fields.
 3. Copy `Templates/MockDataProviderExample.swift` into your main app target and fill it in.
 4. Create a subclass of `ScreenshotTestBase` in your UITest target.
 
@@ -565,7 +595,7 @@ The single-file design means there are no dependency conflicts and the code is a
 ⚠️  Simulator 'iPhone 17 Pro Max' not found and no fallback available – skipping
 ```
 
-**Fix:** Install the required simulator runtime in Xcode → Settings → Platforms. If you're not using the Plantner defaults, make sure you pass `--project` and `--scheme` with the correct values for your app.
+**Fix:** Install the required simulator runtime in Xcode → Settings → Platforms. Check that the `APP_NAME`, `SCHEME`, and `DEVICES` entries in your template script match your project.
 
 ### Tab not hittable on iPad
 
