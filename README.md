@@ -1,6 +1,6 @@
 # ios-screenshot-automator
 
-A self-contained, drop-in toolkit for automating App Store screenshot capture across multiple iOS simulators. Add the Swift package, subclass one class, copy the template script, and run — pixel-perfect screenshots for every device size required by App Store Connect.
+A self-contained, drop-in toolkit for automating App Store screenshot capture across multiple iOS and tvOS simulators. Add the Swift package, subclass one class, copy the template script, and run — pixel-perfect screenshots for every device size required by App Store Connect, including Apple TV.
 
 <p align="center">
   <img src="Icon/icon.png" alt="ios-screenshot-automator icon" width="128">
@@ -33,13 +33,13 @@ A self-contained, drop-in toolkit for automating App Store screenshot capture ac
 
 ## What it is
 
-`ios-screenshot-automator` is a generic XCUITest-based screenshot automation framework extracted from a production iOS app. It provides a reusable base class (`ScreenshotTestBase`) that handles device detection, tab navigation, sheet management, edit-mode recovery, and screenshot saving. You subclass it, describe your app's screens in `captureAllScreens()`, copy the included template script into your project, fill in your project-specific values, and run it — the template auto-discovers the package and drives `xcodebuild` across every simulator that App Store Connect requires, including the 6.9-inch iPhone and the 13-inch iPad mandatory sizes.
+`ios-screenshot-automator` is a generic XCUITest-based screenshot automation framework extracted from a production iOS app. It provides a reusable base class (`ScreenshotTestBase`) that handles device detection, tab navigation, sheet management, edit-mode recovery, and screenshot saving. You subclass it, describe your app's screens in `captureAllScreens()`, copy the included template script into your project, fill in your project-specific values, and run it — the template auto-discovers the package and drives `xcodebuild` across every simulator that App Store Connect requires, including the 6.9-inch iPhone, the 13-inch iPad mandatory sizes, and Apple TV.
 
 ---
 
 ## Features
 
-- **Multi-device support** – captures screenshots for every required and optional App Store Connect screen size in a single command
+- **Multi-device support** – captures screenshots for every required and optional App Store Connect screen size in a single command, including iPhone, iPad, and Apple TV
 - **Automatic fallback devices** – if a primary simulator (e.g. iPhone 17 Pro Max) is not installed, the script transparently falls back to the next-closest model
 - **Smart iPad navigation** – six escalating strategies to locate tab items on any iPadOS layout (bottom tab bar, floating tab bar, sidebar, TabSection, label scan, coordinate tap)
 - **Edit-mode recovery** – automatically detects and exits SwiftUI list edit mode before navigating
@@ -59,6 +59,7 @@ A self-contained, drop-in toolkit for automating App Store screenshot capture ac
 | Xcode | 15.0 |
 | Swift | 5.9 |
 | iOS Simulator | iOS 16.0 |
+| tvOS Simulator | tvOS 16.0 (for Apple TV screenshots) |
 | macOS (host) | macOS 13 Ventura |
 | Shell | bash 3.2+ (ships with macOS) |
 
@@ -276,7 +277,7 @@ The recommended workflow uses the **template script** (`Templates/capture_screen
 |------|---------|
 | `SimulatorName` | `iPhone 16 Pro Max` — as shown by `xcrun simctl list devices` |
 | `FramePath` | `Files/iPhone16ProMax-Frame.png` — relative to project root |
-| `DevicePreset` | `iphone69`, `iphone67`, `ipad13`, etc. (see template for full list) |
+| `DevicePreset` | `iphone69`, `iphone67`, `ipad13`, `appletv`, etc. (see template for full list) |
 | `Margin` | `30` (iPhone) / `70` (iPad) — pixels between frame and canvas edge |
 
 > **Device frame PNGs are not included.** Download from [Apple Design Resources](https://developer.apple.com/design/resources/) or similar and place them in your project repo. The frame must have a transparent screen area.
@@ -287,7 +288,7 @@ The recommended workflow uses the **template script** (`Templates/capture_screen
 |------|---------|
 | *(no flags)* | Full pipeline — capture screenshots + generate mockups |
 | `--mockups-only` | Skip capture, regenerate mockups from existing screenshots |
-| `--iphone-only` | Skip iPad devices |
+| `--iphone-only` | Skip iPad and Apple TV devices |
 
 ### Examples
 
@@ -325,6 +326,7 @@ All properties in `ScreenshotTestConfig` are surfaced as `open class var` on `Sc
 | `sheetDelay` | `1.0 s` | Pause after a sheet/modal is opened |
 | `targetDevices` | iPhone 17 Pro Max, iPhone 17 Pro, iPad Pro 13" (M5) | Device list for universal mode |
 | `iPhoneOnlyDevices` | iPhone 17 Pro Max, iPhone 17 Pro | Device list for `--iphone-only` mode |
+| `appleTVDevices` | Apple TV 4K (3rd generation) | Device list for Apple TV mode |
 
 ### Overriding timing in a subclass
 
@@ -366,7 +368,7 @@ When `composerConfig` is `nil` (the default), screenshots are saved as raw devic
 |----------|------|---------|-------------|
 | `gradientColors` | `[UIColor]` | `[.systemBlue, .systemPurple]` | Two or more colors for the background gradient |
 | `gradientDirection` | `GradientDirection` | `.topToBottom` | Direction of the gradient (see options below) |
-| `deviceFrameStyle` | `DeviceFrameStyle` | `.automatic` | Frame style: `.none`, `.generic`, `.iPhone`, `.iPad`, or `.automatic` |
+| `deviceFrameStyle` | `DeviceFrameStyle` | `.automatic` | Frame style: `.none`, `.generic`, `.iPhone`, `.iPad`, `.tv`, or `.automatic` |
 | `frameColor` | `UIColor` | `.black` | Color of the device bezel |
 | `screenshotScale` | `CGFloat` | `0.75` | How much of the canvas the device occupies (0.1–1.0) |
 | `frameCornerRadius` | `CGFloat?` | `nil` (auto) | Custom corner radius for the frame |
@@ -391,7 +393,8 @@ When `composerConfig` is `nil` (the default), screenshots are saved as raw devic
 | `.generic` | A generic rounded-rectangle frame |
 | `.iPhone` | iPhone-shaped frame (narrower bezels, larger corner radius) |
 | `.iPad` | iPad-shaped frame (wider bezels, smaller corner radius) |
-| `.automatic` | Auto-selects `.iPhone` or `.iPad` based on the current device |
+| `.tv` | Apple TV-shaped frame (minimal bezels, very small corner radius) |
+| `.automatic` | Auto-selects `.iPhone`, `.iPad`, or `.tv` based on the current device |
 
 ### Per-screenshot overrides
 
@@ -666,6 +669,12 @@ Apple documentation: [Screenshot specifications – App Store Connect Help](http
 | iPhone 14 Plus | 6.5" | 1284 × 2778 px (legacy 6.5" slot) |
 | iPad Air 13-inch (M3) | 11" | 1668 × 2388 px |
 
+### Apple TV screenshot sizes
+
+| Device | Resolution | Status |
+|--------|------------|--------|
+| Apple TV 4K (3rd generation) | 1920 × 1080 px | **Required for tvOS apps** |
+
 > **Note:** If you submit screenshots for the 6.9" slot, App Store Connect will automatically scale them for the 6.5" slot. Submitting both is still recommended for the sharpest display on older devices.
 
-`ScreenshotTestConfig.AppStoreDevices` maps every relevant simulator name to its display size, and `ScreenshotTestConfig.targetDevices` provides a ready-made list covering all required sizes.
+`ScreenshotTestConfig.AppStoreDevices` maps every relevant simulator name to its display size, and `ScreenshotTestConfig.targetDevices` provides a ready-made list covering all required sizes. Use `ScreenshotTestConfig.appleTVDevices` for Apple TV.

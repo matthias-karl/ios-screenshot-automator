@@ -50,7 +50,9 @@ public enum DeviceFrameStyle {
     case iPhone
     /// iPad-shaped frame with wider bezels and smaller corner radius.
     case iPad
-    /// Automatically selects `.iPhone` or `.iPad` based on the current device idiom.
+    /// Apple TV-shaped frame with minimal bezels and very small corner radius.
+    case tv
+    /// Automatically selects `.iPhone`, `.iPad`, or `.tv` based on the current device idiom.
     case automatic
 }
 
@@ -220,7 +222,7 @@ public struct ScreenshotComposer {
             switch resolvedStyle {
             case .none:
                 drawScreenshot(originalImage, in: ctx, rect: deviceRect, cornerRadius: 0)
-            case .iPhone, .iPad, .generic:
+            case .iPhone, .iPad, .tv, .generic:
                 let bezelWidth = config.frameBezelWidth ?? defaultBezelWidth(for: resolvedStyle, canvasSize: canvasSize)
                 let cornerRadius = config.frameCornerRadius ?? defaultCornerRadius(for: resolvedStyle, canvasSize: canvasSize)
 
@@ -329,10 +331,14 @@ public struct ScreenshotComposer {
         return CGRect(x: x, y: y, width: deviceWidth, height: deviceHeight)
     }
 
-    /// Resolve `.automatic` frame style to `.iPhone` or `.iPad`.
+    /// Resolve `.automatic` frame style to `.iPhone`, `.iPad`, or `.tv`.
     private static func resolveFrameStyle(_ style: DeviceFrameStyle) -> DeviceFrameStyle {
         guard style == .automatic else { return style }
+        #if os(tvOS)
+        return .tv
+        #else
         return UIDevice.current.userInterfaceIdiom == .pad ? .iPad : .iPhone
+        #endif
     }
 
     /// Default bezel width for the given frame style relative to canvas size.
@@ -343,6 +349,8 @@ public struct ScreenshotComposer {
             return shortSide * 0.015
         case .iPad:
             return shortSide * 0.02
+        case .tv:
+            return shortSide * 0.01
         default:
             return shortSide * 0.018
         }
@@ -356,6 +364,8 @@ public struct ScreenshotComposer {
             return shortSide * 0.08
         case .iPad:
             return shortSide * 0.04
+        case .tv:
+            return shortSide * 0.02
         default:
             return shortSide * 0.06
         }

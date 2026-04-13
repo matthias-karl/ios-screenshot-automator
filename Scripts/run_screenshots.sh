@@ -76,6 +76,8 @@ FALLBACK_DEVICES=(
     "iPhone 14 Plus"
     "iPad Pro 13-inch (M4)"
     "iPad Pro (12.9-inch) (6th generation)"
+    "Apple TV 4K (3rd generation) (at 1080p)"
+    "Apple TV 4K (at 1080p) (2nd generation)"
 )
 
 # =============================================================================
@@ -229,6 +231,12 @@ for DEVICE in "${DEVICES[@]}"; do
         fi
 
         DESTINATION="platform=iOS Simulator,name=${ACTUAL_DEVICE},OS=latest"
+
+        # Use tvOS Simulator platform for Apple TV devices
+        if [[ "$ACTUAL_DEVICE" == *Apple?TV* ]]; then
+            DESTINATION="platform=tvOS Simulator,name=${ACTUAL_DEVICE},OS=latest"
+        fi
+
         SAFE_DEVICE_NAME="${ACTUAL_DEVICE// /_}"
         RESULT_BUNDLE="$OUTPUT_DIR/${SAFE_DEVICE_NAME}_${LANG}.xcresult"
 

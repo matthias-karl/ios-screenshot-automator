@@ -65,10 +65,11 @@ Raw Screenshots (PNG)          →    App Store Mockups (PNG)
 
 ### Key features
 
-- **Automated screenshot capture** across multiple iOS simulators (iPhone + iPad)
+- **Automated screenshot capture** across multiple iOS and tvOS simulators (iPhone + iPad + Apple TV)
 - **Smart iPad navigation** with 6 escalating strategies for tab/sidebar navigation
+- **Apple TV navigation** with top tab bar support for tvOS apps
 - **Automatic screen area detection** in device frames (transparent or black)
-- **Device-specific corner radius** clipping (15% for iPhones, 2% for iPads)
+- **Device-specific corner radius** clipping (15% for iPhones, 2% for iPads, 1% for Apple TV)
 - **Apple-compliant output** at exact App Store Connect pixel dimensions
 - **Gradient backgrounds** with configurable colors and angle
 - **Aspect-fit frame scaling** with configurable minimum margin
@@ -379,7 +380,7 @@ Before every navigation attempt on iPad, `exitEditModeIfNeeded()` is called. Thi
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `takeScreenshot(name:)` | `throws` | Save screenshot to disk + attach to Xcode test results |
-| `navigateToTabByIndex(_:)` | `Void` | Auto-selects iPhone or iPad strategy |
+| `navigateToTabByIndex(_:)` | `Void` | Auto-selects iPhone, iPad, or Apple TV strategy |
 | `navigateToTabByLabel(_:)` | `Bool` | Navigate by accessibility label array |
 | `tapFirstHittableCell()` | `Bool` | Tap the first visible cell in a list |
 | `tapPlusButton()` | `Bool` | Find and tap the add/plus button |
@@ -518,6 +519,7 @@ If a requested simulator is not installed, the script automatically tries these 
 | iPhone 17 Pro Max | iPhone 16 Pro Max → iPhone 14 Plus |
 | iPhone 17 Pro | iPhone 16 Pro |
 | iPad Pro 13-inch (M5) | iPad Pro 13-inch (M4) → iPad Pro (12.9-inch) (6th gen) |
+| Apple TV 4K (3rd generation) (at 1080p) | Apple TV 4K (at 1080p) (2nd generation) |
 
 ### Output Structure
 
@@ -534,9 +536,12 @@ screenshots/
 │   └── ... (same naming pattern)
 ├── iPad_Pro_13-inch_(M5)/
 │   └── ... (same naming pattern)
+├── Apple_TV_4K_(3rd_generation)_(at_1080p)/
+│   └── ... (same naming pattern)
 ├── iPhone_17_Pro_en.xcresult        # Xcode test result bundle
 ├── iPhone_17_Pro_Max_en.xcresult
-└── iPad_Pro_13-inch_(M5)_en.xcresult
+├── iPad_Pro_13-inch_(M5)_en.xcresult
+└── Apple_TV_4K_(3rd_generation)_(at_1080p)_en.xcresult
 ```
 
 ---
@@ -704,6 +709,7 @@ The script includes built-in presets for all App Store Connect screenshot sizes:
 | `ipad11` | 11" (iPad Pro 11"/Air 11") | 1668 × 2388 | Optional |
 | `ipad105` | 10.5" (iPad Pro 10.5") | 1668 × 2224 | Legacy |
 | `ipad97` | 9.7" (iPad/mini) | 1536 × 2048 | Legacy |
+| `appletv` | Apple TV | 1920 × 1080 (landscape) | ⭐ **Required** (tvOS) |
 
 ### 6.6 CLI Reference
 
@@ -784,6 +790,7 @@ GRADIENT_END="#1f881b"                  # ← CHANGE
 DEVICES=(
     "iPhone 16 Pro Max|Files/iPhone16ProMax-Frame.png|iphone69|30"
     "iPad Pro 13-inch (M4)|Files/iPadPro13-Frame.png|ipad13|70"
+    # "Apple TV 4K (3rd generation) (at 1080p)|Files/AppleTV-Frame.png|appletv|30"
 )
 ```
 
