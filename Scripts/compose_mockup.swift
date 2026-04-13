@@ -25,7 +25,9 @@ enum DevicePreset: String, CaseIterable {
     case appletv    = "appletv"     // Apple TV (1920×1080)
 
     // Portrait canvas size (Apple-required pixel dimensions)
-    // Apple TV uses landscape-native 1920×1080, so portraitSize stores width < height.
+    // For iPhone/iPad: width < height (portrait orientation).
+    // For Apple TV: stored as 1080×1920 (width < height) to follow the same
+    // convention; use landscapeSize (1920×1080) for the actual native resolution.
     var portraitSize: CGSize {
         switch self {
         case .iphone69:  return CGSize(width: 1320, height: 2868)
