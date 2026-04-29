@@ -316,7 +316,7 @@ func composeMockup(config: Config) throws {
     case .ipad13, .ipad11, .ipad105, .ipad97:
         cornerRadiusFactor = 0.02
     case .appletv:
-        cornerRadiusFactor = 0.01
+        cornerRadiusFactor = 0.0
     default:
         cornerRadiusFactor = 0.15
     }
