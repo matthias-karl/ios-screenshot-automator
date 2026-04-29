@@ -46,7 +46,7 @@ public struct ScreenshotTestConfig {
         // MARK: - Apple TV
 
         /// Apple TV 4K – (1920 × 1080 px)
-        public static let AppleTV4K: String = "Apple TV 4K (3rd generation) (at 1080p)"
+        public static let appleTV4K: String = "Apple TV 4K (3rd generation) (at 1080p)"
     }
 
     /// Target simulators for App Store screenshots.
@@ -65,7 +65,7 @@ public struct ScreenshotTestConfig {
 
     /// Apple TV devices (for tvOS apps).
     public static let appleTVDevices: [String] = [
-        AppStoreDevices.AppleTV4K,
+        AppStoreDevices.appleTV4K,
     ]
 
     /// Initial delay after app launch (seconds) – allows system notifications to appear.
@@ -325,7 +325,7 @@ open class ScreenshotTestBase: XCTestCase {
         }
 
         let tabButtons = tabBar.buttons
-        guard tabButtons.count > index else {
+        guard index >= 0, tabButtons.count > index else {
             print("⚠️ Apple TV: Tab index \(index) not available (only \(tabButtons.count) tabs)")
             return
         }

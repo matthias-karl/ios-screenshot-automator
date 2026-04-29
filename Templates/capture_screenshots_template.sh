@@ -211,7 +211,7 @@ for arg in "$@"; do
             echo ""
             echo "Options:"
             echo "  --mockups-only   Skip screenshot capture, generate mockups from existing screenshots"
-            echo "  --iphone-only    Only process iPhone devices (skip iPads)"
+            echo "  --iphone-only    Only process iPhone devices (skip iPads and Apple TV)"
             echo "  --help, -h       Show this help message"
             echo ""
             echo "Examples:"
