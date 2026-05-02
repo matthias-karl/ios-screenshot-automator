@@ -69,13 +69,18 @@ OUTPUT_DIR="$PROJECT_ROOT/screenshots"
 DEVICES=("iPhone 17 Pro Max" "iPhone 17 Pro" "iPad Pro 13-inch (M5)")
 LANGUAGES=("en")
 
-# Fallback devices when a requested simulator is not installed
-FALLBACK_DEVICES=(
+# Fallback devices when a requested simulator is not installed.
+# Split by platform so iOS devices never fall back to tvOS simulators and vice versa.
+FALLBACK_DEVICES_IOS=(
     "iPhone 16 Pro Max"
     "iPhone 16 Pro"
     "iPhone 14 Plus"
     "iPad Pro 13-inch (M4)"
     "iPad Pro (12.9-inch) (6th generation)"
+)
+FALLBACK_DEVICES_TVOS=(
+    "Apple TV 4K (3rd generation) (at 1080p)"
+    "Apple TV 4K (at 1080p) (2nd generation)"
 )
 
 # =============================================================================
@@ -209,10 +214,15 @@ for DEVICE in "${DEVICES[@]}"; do
 
         ACTUAL_DEVICE="$DEVICE"
 
-        # Check whether the simulator is available; try fallbacks if not
+        # Check whether the simulator is available; try platform-matching fallbacks if not
         if ! xcrun simctl list devices available | grep -q "$ACTUAL_DEVICE"; then
             FALLBACK_USED=""
-            for FB in "${FALLBACK_DEVICES[@]}"; do
+            if [[ "$DEVICE" == *Apple?TV* ]]; then
+                FALLBACK_LIST=("${FALLBACK_DEVICES_TVOS[@]}")
+            else
+                FALLBACK_LIST=("${FALLBACK_DEVICES_IOS[@]}")
+            fi
+            for FB in "${FALLBACK_LIST[@]}"; do
                 if xcrun simctl list devices available | grep -q "$FB"; then
                     echo -e "${YELLOW}⚠️  '$DEVICE' not found – using fallback: $FB${NC}"
                     ACTUAL_DEVICE="$FB"
@@ -229,6 +239,12 @@ for DEVICE in "${DEVICES[@]}"; do
         fi
 
         DESTINATION="platform=iOS Simulator,name=${ACTUAL_DEVICE},OS=latest"
+
+        # Use tvOS Simulator platform for Apple TV devices
+        if [[ "$ACTUAL_DEVICE" == *Apple?TV* ]]; then
+            DESTINATION="platform=tvOS Simulator,name=${ACTUAL_DEVICE},OS=latest"
+        fi
+
         SAFE_DEVICE_NAME="${ACTUAL_DEVICE// /_}"
         RESULT_BUNDLE="$OUTPUT_DIR/${SAFE_DEVICE_NAME}_${LANG}.xcresult"
 

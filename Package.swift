@@ -4,7 +4,8 @@ import PackageDescription
 let package = Package(
     name: "ios-screenshot-automator",
     platforms: [
-        .iOS(.v16)
+        .iOS(.v16),
+        .tvOS(.v16)
     ],
     products: [
         .library(

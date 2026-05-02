@@ -21,8 +21,13 @@ enum DevicePreset: String, CaseIterable {
     case ipad11     = "ipad11"      // iPad Pro 11" / iPad Air 11"
     case ipad105    = "ipad105"     // iPad Pro 10.5" (legacy)
     case ipad97     = "ipad97"      // iPad / iPad mini (legacy)
+    // Apple TV
+    case appletv    = "appletv"     // Apple TV (1920×1080)
 
     // Portrait canvas size (Apple-required pixel dimensions)
+    // For iPhone/iPad: width < height (portrait orientation).
+    // For Apple TV: stored as 1080×1920 (width < height) to follow the same
+    // convention; use landscapeSize (1920×1080) for the actual native resolution.
     var portraitSize: CGSize {
         switch self {
         case .iphone69:  return CGSize(width: 1320, height: 2868)
@@ -34,6 +39,7 @@ enum DevicePreset: String, CaseIterable {
         case .ipad11:    return CGSize(width: 1668, height: 2388)
         case .ipad105:   return CGSize(width: 1668, height: 2224)
         case .ipad97:    return CGSize(width: 1536, height: 2048)
+        case .appletv:   return CGSize(width: 1080, height: 1920)
         }
     }
 
@@ -52,6 +58,7 @@ enum DevicePreset: String, CaseIterable {
         case .ipad11:    return "iPad 11\" (Pro 11\" / Air 11\")"
         case .ipad105:   return "iPad 10.5\" (Pro 10.5\")"
         case .ipad97:    return "iPad 9.7\" (iPad / mini)"
+        case .appletv:   return "Apple TV (1920×1080)"
         }
     }
 }
@@ -308,6 +315,8 @@ func composeMockup(config: Config) throws {
     switch config.device {
     case .ipad13, .ipad11, .ipad105, .ipad97:
         cornerRadiusFactor = 0.02
+    case .appletv:
+        cornerRadiusFactor = 0.0
     default:
         cornerRadiusFactor = 0.15
     }
@@ -394,6 +403,7 @@ func printUsage() {
     Examples:
       swift compose_mockup.swift --frame iphone_frame.png --screenshot app.png --output mockup.png
       swift compose_mockup.swift --frame ipad_frame.png   --screenshot app.png --output mockup.png --device ipad13
+      swift compose_mockup.swift --frame appletv_frame.png --screenshot app.png --output mockup.png --device appletv --landscape
       swift compose_mockup.swift --frame iphone_frame.png --screenshot app.png --output mockup.png \\
         --gradient-start '#FF6B6B' --gradient-end '#4ECDC4' --angle 120 --landscape
     """)

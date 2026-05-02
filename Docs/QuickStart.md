@@ -139,6 +139,7 @@ DEVICES=(
     "iPhone 16 Pro Max|Files/iPhone16ProMax-Frame.png|iphone69|30"
     "iPhone 16 Pro|Files/iPhone16Pro-Frame.png|iphone67|30"
     # "iPad Pro 13-inch (M4)|Files/iPadPro13-Frame.png|ipad13|70"
+    # "Apple TV 4K (3rd generation) (at 1080p)|Files/AppleTV-Frame.png|appletv|30"
 )
 ```
 
@@ -172,7 +173,7 @@ See the [template header](../Templates/capture_screenshots_template.sh) for the 
 | Template script | `Templates/capture_screenshots_template.sh` — copy into your project |
 | Shell runner (internal) | `Scripts/run_screenshots.sh` — called by the template, don't copy |
 | Mockup composer (internal) | `Scripts/compose_mockup.swift` — called by the template, don't copy |
-| Example test | `Examples/ExampleScreenshotTest.swift` |
+| Example test | `Examples/ExampleScreenshotTest.swift` · `Examples/ExampleAppleTVScreenshotTest.swift` |
 | Mock data template | `Templates/MockDataProviderExample.swift` |
 | Full docs | `Docs/DeveloperHowto.md` · `Docs/ScreenshotPipeline.md` |
 
@@ -191,7 +192,7 @@ See the [template header](../Templates/capture_screenshots_template.sh) for the 
 |------|---------|
 | *(no flags)* | Full pipeline — capture screenshots + generate mockups |
 | `--mockups-only` | Skip capture, regenerate mockups from existing screenshots |
-| `--iphone-only` | Skip iPad devices |
+| `--iphone-only` | Skip iPad and Apple TV devices |
 
 ---
 

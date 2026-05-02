@@ -42,6 +42,11 @@ public struct ScreenshotTestConfig {
 
         /// 11" Display – iPad Air M3 (1668 × 2388 px)
         public static let iPad11: String = "iPad Air 13-inch (M3)"
+
+        // MARK: - Apple TV
+
+        /// Apple TV 4K – (1920 × 1080 px)
+        public static let appleTV4K: String = "Apple TV 4K (3rd generation) (at 1080p)"
     }
 
     /// Target simulators for App Store screenshots.
@@ -56,6 +61,11 @@ public struct ScreenshotTestConfig {
     public static let iPhoneOnlyDevices: [String] = [
         AppStoreDevices.iPhone6_9,
         AppStoreDevices.iPhone6_3,
+    ]
+
+    /// Apple TV devices (for tvOS apps).
+    public static let appleTVDevices: [String] = [
+        AppStoreDevices.appleTV4K,
     ]
 
     /// Initial delay after app launch (seconds) – allows system notifications to appear.
@@ -126,6 +136,9 @@ open class ScreenshotTestBase: XCTestCase {
     /// Devices used when running in iPhone-only mode.
     open class var iPhoneOnlyDevices: [String] { ScreenshotTestConfig.iPhoneOnlyDevices }
 
+    /// Devices used when running in Apple TV mode.
+    open class var appleTVDevices: [String] { ScreenshotTestConfig.appleTVDevices }
+
     // MARK: - Setup
 
     override open func setUp() {
@@ -136,8 +149,13 @@ open class ScreenshotTestBase: XCTestCase {
         deviceName = UIDevice.current.name
         let sanitizedDeviceName = deviceName.replacingOccurrences(of: " ", with: "_")
 
+        #if os(tvOS)
+        print("📺 Test running on: \(deviceName)")
+        print("📺 tvOS Version: \(UIDevice.current.systemVersion)")
+        #else
         print("📱 Test running on: \(deviceName)")
         print("📱 iOS Version: \(UIDevice.current.systemVersion)")
+        #endif
 
         // Derive project root from the location of this source file:
         //   <ProjectRoot>/…UITests/ScreenshotTestBase.swift
@@ -255,6 +273,10 @@ open class ScreenshotTestBase: XCTestCase {
     /// Automatically selects the correct strategy for iPhone vs iPad.
     /// - Parameter index: Zero-based tab index (0 = first tab, 1 = second tab, …).
     open func navigateToTabByIndex(_ index: Int) {
+        #if os(tvOS)
+        print("📺 Apple TV detected – using Apple TV navigation strategy")
+        navigateToTabOnAppleTV(index)
+        #else
         let isIPad = UIDevice.current.userInterfaceIdiom == .pad
 
         if isIPad {
@@ -264,6 +286,7 @@ open class ScreenshotTestBase: XCTestCase {
             print("📱 iPhone detected – using standard tab bar navigation")
             navigateToTabOnIPhone(index)
         }
+        #endif
     }
 
     /// Standard iPhone tab bar navigation.
@@ -287,6 +310,33 @@ open class ScreenshotTestBase: XCTestCase {
             print("✅ Navigated to tab \(index)")
         } else {
             print("⚠️ Tab \(index) does not exist or is not hittable")
+        }
+    }
+
+    /// Apple TV navigation using the top tab bar.
+    ///
+    /// On tvOS the tab bar sits at the top of the screen. This method focuses
+    /// the desired tab by index using the tab bar buttons.
+    open func navigateToTabOnAppleTV(_ index: Int) {
+        let tabBar = app.tabBars.firstMatch
+        guard tabBar.waitForExistence(timeout: 5) else {
+            print("⚠️ Apple TV: TabBar not found")
+            return
+        }
+
+        let tabButtons = tabBar.buttons
+        guard index >= 0, tabButtons.count > index else {
+            print("⚠️ Apple TV: Tab index \(index) not available (only \(tabButtons.count) tabs)")
+            return
+        }
+
+        let targetTab = tabButtons.element(boundBy: index)
+        if targetTab.exists {
+            targetTab.tap()
+            Thread.sleep(forTimeInterval: type(of: self).navigationDelay)
+            print("✅ Apple TV: Navigated to tab \(index)")
+        } else {
+            print("⚠️ Apple TV: Tab \(index) does not exist")
         }
     }
 

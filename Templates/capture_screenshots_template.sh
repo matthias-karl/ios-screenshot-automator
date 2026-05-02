@@ -88,6 +88,7 @@ set -euo pipefail
 #                        ipad11    → 1668×2388  (iPad 11")
 #                        ipad105   → 1668×2224  (iPad 10.5")
 #                        ipad97    → 1536×2048  (iPad 9.7")
+#                        appletv   → 1920×1080  (Apple TV)
 #   • Margin         — Minimum margin in pixels between device frame
 #                      and canvas edge. Recommended: 30 (iPhone), 70 (iPad)
 #
@@ -96,6 +97,7 @@ set -euo pipefail
 #   "iPhone 16 Pro Max|Files/iPhone16ProMax-Frame.png|iphone69|30"
 #   "iPhone 16 Pro|Files/iPhone16Pro-Frame.png|iphone67|30"
 #   "iPad Pro 13-inch (M4)|Files/iPadPro13-Frame.png|ipad13|70"
+#   "Apple TV 4K (3rd generation) (at 1080p)|Files/AppleTV-Frame.png|appletv|30"
 #
 # ══════════════════════════════════════════════════════════════════════
 
@@ -124,6 +126,8 @@ DEVICES=(                               # ← CHANGE: Add your devices
     "iPhone 16 Pro|Files/iPhone16Pro-Frame.png|iphone67|30"
     # iPads
     # "iPad Pro 13-inch (M4)|Files/iPadPro13-Frame.png|ipad13|70"
+    # Apple TV
+    # "Apple TV 4K (3rd generation) (at 1080p)|Files/AppleTV-Frame.png|appletv|30"
 )
 
 # ── OUTPUT DIRECTORIES ───────────────────────────────────────────────
@@ -207,7 +211,7 @@ for arg in "$@"; do
             echo ""
             echo "Options:"
             echo "  --mockups-only   Skip screenshot capture, generate mockups from existing screenshots"
-            echo "  --iphone-only    Only process iPhone devices (skip iPads)"
+            echo "  --iphone-only    Only process iPhone devices (skip iPads and Apple TV)"
             echo "  --help, -h       Show this help message"
             echo ""
             echo "Examples:"
@@ -240,8 +244,8 @@ if [ "$MOCKUPS_ONLY" = false ]; then
     for entry in "${DEVICES[@]}"; do
         IFS='|' read -r SIM_NAME FRAME_PATH PRESET MARGIN <<< "$entry"
 
-        # Skip iPads if --iphone-only
-        if [ "$IPHONE_ONLY" = true ] && [[ "$SIM_NAME" == *iPad* ]]; then
+        # Skip iPads and Apple TV if --iphone-only
+        if [ "$IPHONE_ONLY" = true ] && [[ "$SIM_NAME" == *iPad* || "$SIM_NAME" == *Apple?TV* ]]; then
             continue
         fi
 
@@ -284,8 +288,8 @@ FAILED_MOCKUPS=0
 for entry in "${DEVICES[@]}"; do
     IFS='|' read -r SIM_NAME FRAME_PATH PRESET MARGIN <<< "$entry"
 
-    # Skip iPads if --iphone-only
-    if [ "$IPHONE_ONLY" = true ] && [[ "$SIM_NAME" == *iPad* ]]; then
+    # Skip iPads and Apple TV if --iphone-only
+    if [ "$IPHONE_ONLY" = true ] && [[ "$SIM_NAME" == *iPad* || "$SIM_NAME" == *Apple?TV* ]]; then
         continue
     fi
 
@@ -330,6 +334,12 @@ for entry in "${DEVICES[@]}"; do
 
         echo "   🖼️  Composing: $FILENAME"
 
+        # Apple TV screenshots are always landscape
+        LANDSCAPE_FLAG=""
+        if [[ "$PRESET" == "appletv" ]]; then
+            LANDSCAPE_FLAG="--landscape"
+        fi
+
         if swift "$COMPOSE_SCRIPT" \
             --frame "$FRAME_FULL_PATH" \
             --screenshot "$SCREENSHOT" \
@@ -337,7 +347,7 @@ for entry in "${DEVICES[@]}"; do
             --device "$PRESET" \
             --margin "$MARGIN" \
             --gradient-start "$GRADIENT_START" \
-            --gradient-end "$GRADIENT_END" 2>&1 | grep -E "✅|❌|Error"; then
+            --gradient-end "$GRADIENT_END" $LANDSCAPE_FLAG 2>&1 | grep -E "✅|❌|Error"; then
             DEVICE_COUNT=$((DEVICE_COUNT + 1))
             TOTAL_MOCKUPS=$((TOTAL_MOCKUPS + 1))
         else

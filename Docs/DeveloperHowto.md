@@ -54,6 +54,7 @@ Install at least the **mandatory** simulators for App Store Connect:
 |-----------|-------------|--------|
 | iPhone 17 Pro Max (or iPhone 16 Pro Max) | 6.9" | ⭐ **Required** |
 | iPad Pro 13-inch (M5 or M4) | 13" | ⭐ **Required** (if iPad app) |
+| Apple TV 4K (3rd generation) (at 1080p) | 1920×1080 | ⭐ **Required** (if tvOS app) |
 
 **Optional but recommended:**
 - iPhone 17 Pro (6.3") — for the secondary iPhone slot
@@ -483,6 +484,7 @@ Each device entry in the template script has four fields:
 DEVICES=(
     "iPhone_17_Pro|iphone69|$IPHONE_FRAME|30"
     "iPad_Pro_13-inch_(M5)|ipad13|$IPAD_FRAME|70"
+    # "Apple_TV_4K_(3rd_generation)_(at_1080p)|appletv|$APPLETV_FRAME|30"
 )
 ```
 
@@ -503,6 +505,7 @@ DEVICES=(
 | `iphone55` | 1242×2208 | iPhone 8 Plus |
 | `ipad13` | 2064×2752 | iPad Pro 13" |
 | `ipad11` | 1668×2388 | iPad Pro 11", Air 11" |
+| `appletv` | 1920×1080 | Apple TV 4K |
 
 ### Corner Radius
 
@@ -512,6 +515,7 @@ The screenshot is clipped with rounded corners so it fits inside the device fram
 |-------------|--------------|--------|
 | iPhone | 15% of screen width | Matches iPhone's rounded display |
 | iPad | 2% of screen width | Subtle rounding for iPad's flatter corners |
+| Apple TV | 1% of screen width | Minimal rounding for TV display |
 
 To change the corner radius, edit `compose_mockup.swift`:
 
@@ -520,6 +524,8 @@ To change the corner radius, edit `compose_mockup.swift`:
 switch config.device {
 case .ipad13, .ipad11, .ipad105, .ipad97:
     cornerRadiusFactor = 0.02    // ← Change iPad radius here
+case .appletv:
+    cornerRadiusFactor = 0.01    // ← Change Apple TV radius here
 default:
     cornerRadiusFactor = 0.15    // ← Change iPhone radius here
 }
@@ -751,13 +757,14 @@ IPAD_FRAME="$PROJECT_ROOT/Files/iPad Pro 13 - M4 - Silver - Portrait.png"
 # Format: screenshot_folder | compose_preset | frame_path | margin_px
 #
 # screenshot_folder:  Must match the simulator name with spaces → underscores
-# compose_preset:     Canvas size preset (iphone69, ipad13, etc.)
+# compose_preset:     Canvas size preset (iphone69, ipad13, appletv, etc.)
 # frame_path:         Path to the device frame PNG
 # margin_px:          Minimum margin around the frame in pixels
 
 DEVICES=(
     "iPhone_17_Pro|iphone69|$IPHONE_FRAME|30"          # ← CHANGE: Your devices
     "iPad_Pro_13-inch_(M5)|ipad13|$IPAD_FRAME|70"     # ← CHANGE: Your devices
+    # "Apple_TV_4K_(3rd_generation)_(at_1080p)|appletv|$APPLETV_FRAME|30"  # ← Apple TV
 )
 
 # =============================================================================
