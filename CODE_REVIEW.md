@@ -23,6 +23,15 @@ get zero iPad mockups and a misleading "✅ Done" summary.
 Severity legend: 🔴 Blocker / correctness · 🟠 Bug / likely-wrong · 🟡 Design / robustness ·
 🔵 Nice-to-have / polish
 
+> **Update (2026-07-21): re-evaluated against the two real consumers** — `matthias-karl/Plantner`
+> (pinned to `1.1.0`) and `matthias-karl/gameservice_v3` (pinned to `1.2.0`). See the new
+> **§8 "Re-evaluation against real-world usage"** at the bottom. The short version: the two 🔴
+> template bugs (1.1 `iphone67`, 1.2 parens) turn out to be **onboarding-only** — neither shipping
+> app is affected because both use hand-written scripts that predate (and quietly do the right
+> thing that) the package template got wrong. But several 🟠/🟡 items are **confirmed live in
+> production**, and the real apps surface **three new findings** — most importantly that the
+> headline v1.2.0 Apple TV support is not actually used by the author's own tvOS app.
+
 ---
 
 ## 1. 🔴 Blocking / correctness bugs
@@ -424,3 +433,121 @@ unit-testable — and they're where the subtle bugs live (2.9, 2.10, 2.11).
    status (`set -o pipefail` + `${PIPESTATUS[0]}`), and actually increment `FAILED_*`.
 
 Each is a few lines and independently shippable.
+
+---
+
+## 8. Re-evaluation against real-world usage (Plantner + gameservice_v3)
+
+I pulled in the two apps that actually depend on this package and read how they consume it:
+
+| Repo | Package version | iOS/iPad test | tvOS test | Capture script |
+|------|-----------------|---------------|-----------|----------------|
+| `Plantner` | `1.1.0` (rev `a3a9493`) | `PlantnerScreenshotTest : ScreenshotTestBase` | — | `scripts/capture_plantner_screenshots.sh` (hand-written) |
+| `gameservice_v3` | `1.2.0` (rev `142c995`) | `SimpleScreenshotTest : ScreenshotTestBase` | `TVScreenshotTest : XCTestCase` (**does not** use the package) | `scripts/capture_gameservice_screenshots.sh` (hand-written, adds a `--tv-only` path) |
+
+Plantner is the app this toolkit was extracted from; gameservice_v3 is the second adopter and the
+one that drove the v1.2.0 Apple TV release. **Neither app uses `Templates/capture_screenshots_template.sh`
+or `sanitize_name`** — both hand-write their capture script and reference the package only through
+the SPM checkout's `run_screenshots.sh` + `compose_mockup.swift`.
+
+### 8.1 Findings that get *downgraded* (real blast radius is smaller than stated)
+
+- **1.1 `iphone67` → onboarding-only.** Both apps pass **`iphone69`** for their 6.9" iPhone (and
+  `ipad13` / `appletv`). No one passes `iphone67`. So this breaks *new users copying the template*,
+  but **no shipping app is affected.** Still worth fixing (a broken default is a bad first
+  impression), but it is not a live production defect. Re-graded 🔴-for-new-users, not
+  🔴-for-everyone.
+- **1.2 `sanitize_name` parens → onboarding-only, and confirmed as a regression.** Both real scripts
+  take the device folder name **verbatim with parentheses** — Plantner uses
+  `iPad_Pro_13-inch_(M5)`, gameservice uses `Apple_TV_4K_(3rd_generation)` — which is exactly the
+  *correct* behaviour that matches the folder the Swift test creates. The package template's
+  `sanitize_name` (which strips parens) is therefore a **regression introduced when the working
+  script was generalised into a template.** Same conclusion (fix it), stronger evidence (the
+  reference implementations already do it right).
+
+### 8.2 Findings *confirmed live in production* (upgrade confidence)
+
+- **2.3 `Screenshots` vs `screenshots` casing — actually present in gameservice_v3 right now.**
+  `SimpleScreenshotTest.setUp()` writes to **`Screenshots/`** (capital S, line 69) while
+  `capture_gameservice_screenshots.sh` reads from **`screenshots/`** (lowercase, line 77). It only
+  works because the CI/dev Macs use case-insensitive APFS; on a case-sensitive volume gameservice's
+  mockup step would find nothing. (Plantner happens to be internally consistent on lowercase.) This
+  is no longer hypothetical.
+- **2.1 `--output` doesn't place screenshots — confirmed as universal friction.** *Both* apps
+  override `setUp()` to redirect `screenshotsURL` via the `#file` dance, precisely because
+  `--output` only names the `.xcresult`. Every single consumer pays this tax. Strong signal to fix
+  the contract (env var or xcresult extraction, per §3.1).
+- **1.3 failure-masking — confirmed, and the author already knows the fix.** Both apps' compose loop
+  carries the same `if swift … | tail -1` pattern (exit status is `tail`'s, not `swift`'s). **But**
+  gameservice's tvOS path does it *correctly*: `… | tee log | grep …; TV_EXIT=${PIPESTATUS[0]}`
+  then checks the code (lines 169–174). So the correct `PIPESTATUS` technique is already in the
+  codebase — it's just applied inconsistently. That makes the fix low-risk and clearly "the house
+  style when it matters."
+- **2.4 device match by name vs UDID — the real scripts already moved to UDIDs for tvOS.**
+  gameservice resolves the TV simulator with
+  `xcrun simctl list devices | grep … | grep -oE '[A-F0-9-]{36}' | head -1` and boots by UDID
+  (lines 147–151) — exactly the recommendation. The package's `run_screenshots.sh` still uses the
+  weaker `grep -q "$NAME"` substring test. The better approach is demonstrably available.
+- **2.5 English-only system-alert dismissal — exposed.** Both apps run `--languages "de"`. If either
+  app triggered a permission dialog, `dismissSystemAlerts()`'s hard-coded `"Allow"`/`"OK"` would
+  miss the German buttons. (Neither app appears to request runtime permissions during capture, so
+  it hasn't bitten yet — but the exposure is real for any localised run.)
+
+### 8.3 New findings surfaced only by looking at real usage
+
+- **8.3.a 🟠 The v1.2.0 Apple TV support is not used by the app that motivated it.**
+  `gameservice_v3`'s tvOS screenshots come from `GameServiceTVUITests/TVScreenshotTest`, which is a
+  **plain `XCTestCase` that does not import or subclass `ScreenshotTestBase`.** It reimplements
+  capture from scratch: one test method per state (with a comment that *"tvOS simulator does not
+  reliably support terminate() + launch() cycles within a single XCTestCase run"*), `async`
+  `Task.sleep`, writing to a fixed **`/tmp/GameServiceTVScreenshots`** and letting bash copy the
+  files out afterwards. In other words, the real tvOS use case independently arrived at the
+  *opposite* of three of the package's design choices: it avoids the monolithic single
+  `testTakeAllScreenshots`, avoids `navigateToTabOnAppleTV`, and avoids the `#file`-to-host-path
+  write. **Consequence:** the package's shipped `Examples/ExampleAppleTVScreenshotTest.swift` and
+  `navigateToTabOnAppleTV(...)` are essentially unvalidated by the author's own product. Either the
+  base class needs to actually support the tvOS pattern that works (per-state test methods, /tmp +
+  copy), or the Apple TV example should be honest about the fact that real tvOS apps bypass the base
+  class. This reframes several of my earlier "design" notes (3.1, 3.4) from "nice to have" to
+  "the production code already went the other way."
+- **8.3.b 🟡 Public type name `ScreenshotTestConfig` collides with user code.** gameservice defines
+  its **own** `struct ScreenshotTestConfig` at file scope in `SimpleScreenshotTest.swift` (its
+  screen enum + capture order), with a comment noting the *package's* config is
+  `ScreenshotAutomator.ScreenshotTestConfig`. Two types with the same unqualified name now coexist,
+  forcing disambiguation and inviting `is ambiguous for type lookup` errors. The package's public
+  surface uses very generic names (`ScreenshotTestConfig`, `ScreenshotComposer`,
+  `ScreenshotMockDataProvider` — gameservice also has its own `ScreenshotMockData`). Recommend
+  prefixing public API (e.g. `SAScreenshotConfig`) or nesting under a caseless namespace enum.
+- **8.3.c 🟡 The base class's fixed 4-argument launch is too rigid; consumers fight it.**
+  gameservice's `testMultiplayerScreenshots()` and its tvOS test both **reassign
+  `app.launchArguments` wholesale** to inject `-MULTIPLAYER_STATE` / `-TV_SCREENSHOT_MODE` /
+  `-TV_SCREEN_STATE`. In doing so they *drop* the base's `-UITEST` and `-DISABLE_ANIMATIONS`
+  (probably unintentionally for the multiplayer states). This validates §3's implicit point: the
+  launch arguments should be an overridable/extendable property (e.g.
+  `open var extraLaunchArguments: [String]` or an `open func configureLaunch(_:)` hook) rather than
+  a hard-coded array in `setUp()`.
+
+### 8.4 Also worth noting
+
+- The two hand-written app scripts are **ahead of the package's own template** in real ways:
+  gameservice added a full `--tv-only` tvOS pipeline with proper exit-code checking and UDID
+  resolution that the package `Templates/` version simply doesn't have. The canonical template
+  should be reconciled *up* to what the real scripts do, not the other way around — and ideally the
+  package should just ship these battle-tested scripts as the template (minus the app-specific
+  names), since they already avoid bugs 1.1, 1.2 and (for tvOS) 1.3.
+- Version drift: Plantner is a minor version behind (`1.1.0`, pre-Apple-TV) and works fine; nothing
+  in its usage needs 1.2.0. gameservice is on `1.2.0` but routes around the 1.2.0 tvOS feature. So
+  in practice the **iOS/iPad core is the load-bearing, proven part of this package; the tvOS path is
+  the least-proven part** despite being the newest headline feature.
+
+### 8.5 Revised priority, in light of real usage
+
+1. Keep the three §1 blockers (they're cheap), but reframe 1.1/1.2 as **"fix the template so new
+   users get the working behaviour the real apps already have"** rather than production
+   firefighting.
+2. Promote **2.1 (`--output`/output-path contract)** and **2.3 (casing)** — these are the items that
+   actually cost every real consumer today.
+3. Add **8.3.a (make the tvOS story match reality)** as a real design decision to make before the
+   next release — right now the newest feature is the least trustworthy.
+4. Consider shipping gameservice's `capture_*.sh` (genericised) as the official template; it's the
+   most mature artefact in the whole ecosystem and already dodges most of the template bugs.
