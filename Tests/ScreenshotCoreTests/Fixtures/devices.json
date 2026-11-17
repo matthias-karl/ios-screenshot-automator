@@ -1,0 +1,13 @@
+{
+  "devices": {
+    "com.apple.CoreSimulator.SimRuntime.tvOS-26-4": [],
+    "com.apple.CoreSimulator.SimRuntime.iOS-27-0": [
+      { "udid": "AAAAAAAA-0000-0000-0000-000000000001", "name": "iPhone 18 Pro", "state": "Booted", "isAvailable": true,
+        "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro" }
+    ],
+    "com.apple.CoreSimulator.SimRuntime.iOS-27-1": [
+      { "udid": "AAAAAAAA-0000-0000-0000-000000000002", "name": "iPhone Duo", "state": "Shutdown", "isAvailable": true,
+        "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-Duo" }
+    ]
+  }
+}

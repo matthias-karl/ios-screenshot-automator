@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>capabilities</key>
+	<dict>
+		<key>DeviceSupportsDynamicIsland</key><true/>
+		<key>displays</key>
+		<array>
+			<dict>
+				<key>deviceName</key><string>primary</string>
+				<key>displayType</key><string>integrated</string>
+				<key>width</key><integer>1206</integer>
+				<key>height</key><integer>2622</integer>
+				<key>scale</key><real>3</real>
+				<key>cornerRadiusUL</key><real>62</real>
+				<key>cornerRadiusUR</key><real>62</real>
+				<key>cornerRadiusLL</key><real>62</real>
+				<key>cornerRadiusLR</key><real>62</real>
+			</dict>
+			<dict>
+				<key>deviceName</key><string>external-0</string>
+				<key>displayType</key><string>tvOut</string>
+				<key>width</key><integer>720</integer>
+				<key>height</key><integer>480</integer>
+				<key>scale</key><real>1</real>
+				<key>cornerRadiusUL</key><real>0</real>
+				<key>cornerRadiusUR</key><real>0</real>
+				<key>cornerRadiusLL</key><real>0</real>
+				<key>cornerRadiusLR</key><real>0</real>
+			</dict>
+		</array>
+	</dict>
+</dict>
+</plist>
