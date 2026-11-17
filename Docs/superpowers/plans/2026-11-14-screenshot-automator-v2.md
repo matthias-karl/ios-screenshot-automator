@@ -504,9 +504,9 @@ Jede Aufgabe beginnt mit ihrem Vorversuch aus Spec Abschnitt 9. Das Ergebnis kom
 
 **Files:** Rewrite `README.md`; Create `Docs/Reference.md`; Delete `Docs/QuickStart.md`, `Docs/DeveloperHowto.md`, `Docs/ScreenshotPipeline.md`; Modify `.gitignore`
 
-- [ ] **Step 1:** README (Englisch, wie bisher): was es ist, Installation (`Scripts/install.sh`, Paket im UI-Test-Target), Schnellstart in vier Schritten (`init`, Testdatei, Startargumente in der App, `run`), ein Beispielbild aus `Example/`, Verweis auf die Referenz. Höchstens 150 Zeilen.
-- [ ] **Step 2:** `Docs/Reference.md`: jedes Feld von `screenshots.json` mit Standardwert, Größentabelle (aus `StoreSizes` übernommen, mit Prüfdatum), Rahmenstile, Befehle und Exit-Codes, Plattform-Hinweise (Duo, Mac, Watch, TV), Fehlerbilder mit Lösung, Umstieg von 1.x.
-- [ ] **Step 3:** Jeden Befehl und jedes Konfigurationsbeispiel der Dokumentation einmal gegen `Example/` ausführen bzw. mit `Config.load` laden. `.gitignore` um `Example/screenshots/raw/` und `Example/screenshots/.work/` ergänzen. Commit `docs: v2 readme and reference`.
+- [x] **Step 1:** README (Englisch, wie bisher): was es ist, Installation (`Scripts/install.sh`, Paket im UI-Test-Target), Schnellstart in vier Schritten (`init`, Testdatei, Startargumente in der App, `run`), ein Beispielbild aus `Example/`, Verweis auf die Referenz. Höchstens 150 Zeilen.
+- [x] **Step 2:** `Docs/Reference.md`: jedes Feld von `screenshots.json` mit Standardwert, Größentabelle (aus `StoreSizes` übernommen, mit Prüfdatum), Rahmenstile, Befehle und Exit-Codes, Plattform-Hinweise (Duo, Mac, Watch, TV), Fehlerbilder mit Lösung, Umstieg von 1.x.
+- [x] **Step 3:** Jeden Befehl und jedes Konfigurationsbeispiel der Dokumentation einmal gegen `Example/` ausführen bzw. mit `Config.load` laden. `.gitignore` um `Example/screenshots/raw/` und `Example/screenshots/.work/` ergänzen. Commit `docs: v2 readme and reference`.
 
 ### Task 18: Abnahme mit Spndx und Freigabe
 
