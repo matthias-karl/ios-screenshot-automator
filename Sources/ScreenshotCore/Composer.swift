@@ -34,6 +34,7 @@ public enum ComposeError: Error, Equatable, CustomStringConvertible {
     case badColor(String)
     case frameAspectMismatch(expected: Double, actual: Double)
     case fontUnreadable(String)
+    case missingFrameImage
 
     public var description: String {
         switch self {
@@ -41,6 +42,7 @@ public enum ComposeError: Error, Equatable, CustomStringConvertible {
         case .frameAspectMismatch(let expected, let actual):
             return String(format: "The screen area of the frame image has aspect ratio %.3f, but the screenshot has %.3f.", actual, expected)
         case .fontUnreadable(let path): return "Cannot load the font at \(path)"
+        case .missingFrameImage: return "Frame \"image\" needs a frame image, but none was loaded."
         }
     }
 }
@@ -68,33 +70,72 @@ public enum Composer {
         let screenshotSize = PixelSize(width: r.screenshot.width, height: r.screenshot.height)
         let frame = r.platform == .macOS ? Config.Frame.none : style.frame
         let ringFactor = frame == .bezel ? Layout.bezelRingFactor : 0
-        let rect = Layout.deviceRect(canvas: r.canvas, screenshot: screenshotSize, caption: nil, ringWidthFactor: ringFactor)
-        let cgRect = flipped(rect, canvasHeight: height)
 
-        if r.platform == .macOS {
-            drawMacWindow(r.screenshot, in: cgRect, canvas: r.canvas, context: context)
+        // Text only when a caption style is set (`caption: null` switches captions off).
+        let title = r.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let subtitle = r.subtitle?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let captionRect: CGRect? = {
+            guard let caption = style.caption, !title.isEmpty || !subtitle.isEmpty else { return nil }
+            return Layout.captionRect(canvas: r.canvas, position: caption.position)
+        }()
+        let captionColor = try style.caption.map { try Colors.cgColor($0.color) }
+        // Resolve the font before drawing anything, so an unreadable font fails early.
+        var captionLayout: CaptionLayout.Result?
+        if let captionRect, let caption = style.caption {
+            captionLayout = try CaptionLayout.layout(
+                title: title, subtitle: subtitle.isEmpty ? nil : subtitle, in: captionRect,
+                canvasHeight: Double(height), fontPath: caption.font)
+        }
+
+        if frame == .image && r.platform != .macOS {
+            guard let frameImage = r.frameImage else { throw ComposeError.missingFrameImage }
+            let hole = try FrameImage.screenRect(in: frameImage)
+            let expected = Double(screenshotSize.width) / Double(screenshotSize.height)
+            let actual = hole.width / hole.height
+            guard abs(actual / expected - 1) <= 0.01 else {
+                throw ComposeError.frameAspectMismatch(expected: expected, actual: actual)
+            }
+            let frameRect = Layout.deviceRect(
+                canvas: r.canvas, screenshot: PixelSize(width: frameImage.width, height: frameImage.height),
+                caption: captionRect, ringWidthFactor: 0)
+            let scale = frameRect.width / Double(frameImage.width)
+            let screen = CGRect(x: frameRect.minX + hole.minX * scale, y: frameRect.minY + hole.minY * scale,
+                                width: hole.width * scale, height: hole.height * scale)
+            context.draw(r.screenshot, in: flipped(screen, canvasHeight: height))
+            context.draw(frameImage, in: flipped(frameRect, canvasHeight: height))
         } else {
-            let radii = r.display.map { Layout.cornerRadii(display: $0, drawnWidth: rect.width) } ?? .zero
-            switch frame {
-            case .bezel:
-                let ring = Layout.bezelRingFactor * rect.width
-                context.setFillColor(frameColor)
-                context.addPath(roundedPath(cgRect.insetBy(dx: -ring, dy: -ring), radii.expanded(by: ring)))
-                context.fillPath()
-                drawScreenshot(r.screenshot, in: cgRect, radii: radii, context: context)
-            case .outline, .image:
-                drawScreenshot(r.screenshot, in: cgRect, radii: radii, context: context)
-                let line = 0.006 * min(rect.width, rect.height)
-                context.setStrokeColor(frameColor)
-                context.setLineWidth(line)
-                context.addPath(roundedPath(cgRect.insetBy(dx: line / 2, dy: line / 2), radii.expanded(by: -line / 2)))
-                context.strokePath()
-            case .none:
-                drawScreenshot(r.screenshot, in: cgRect, radii: radii, context: context)
+            let rect = Layout.deviceRect(canvas: r.canvas, screenshot: screenshotSize, caption: captionRect, ringWidthFactor: ringFactor)
+            let cgRect = flipped(rect, canvasHeight: height)
+
+            if r.platform == .macOS {
+                drawMacWindow(r.screenshot, in: cgRect, canvas: r.canvas, context: context)
+            } else {
+                let radii = r.display.map { Layout.cornerRadii(display: $0, drawnWidth: rect.width) } ?? .zero
+                switch frame {
+                case .bezel:
+                    let ring = Layout.bezelRingFactor * rect.width
+                    context.setFillColor(frameColor)
+                    context.addPath(roundedPath(cgRect.insetBy(dx: -ring, dy: -ring), radii.expanded(by: ring)))
+                    context.fillPath()
+                    drawScreenshot(r.screenshot, in: cgRect, radii: radii, context: context)
+                case .outline, .image:
+                    drawScreenshot(r.screenshot, in: cgRect, radii: radii, context: context)
+                    let line = 0.006 * min(rect.width, rect.height)
+                    context.setStrokeColor(frameColor)
+                    context.setLineWidth(line)
+                    context.addPath(roundedPath(cgRect.insetBy(dx: line / 2, dy: line / 2), radii.expanded(by: -line / 2)))
+                    context.strokePath()
+                case .none:
+                    drawScreenshot(r.screenshot, in: cgRect, radii: radii, context: context)
+                }
+                if r.hasDynamicIsland, r.display?.name == "primary", !screenshotSize.isLandscape, frame == .outline || frame == .bezel {
+                    drawIsland(in: cgRect, color: frameColor, context: context)
+                }
             }
-            if r.hasDynamicIsland, r.display?.name == "primary", !screenshotSize.isLandscape, frame == .outline || frame == .bezel || frame == .image {
-                drawIsland(in: cgRect, color: frameColor, context: context)
-            }
+        }
+
+        if let captionRect, let captionLayout, let caption = style.caption, let captionColor {
+            try drawCaption(captionLayout, in: captionRect, caption: caption, color: captionColor, canvasHeight: height, context: context)
         }
         return context.makeImage()!
     }
@@ -156,6 +197,30 @@ public enum Composer {
         context.setFillColor(color)
         context.addPath(roundedPath(capsule, CornerRadii(upperLeft: height / 2, upperRight: height / 2, lowerLeft: height / 2, lowerRight: height / 2)))
         context.fillPath()
+    }
+
+    private static func drawCaption(
+        _ layout: CaptionLayout.Result, in rect: CGRect, caption: Config.Caption, color: CGColor,
+        canvasHeight: Int, context: CGContext
+    ) throws {
+        let block = layout.titleHeight + layout.gap + layout.subtitleHeight
+        let topLeftTop = rect.midY - block / 2                       // top of the text block, y down
+        let cgRect = flipped(rect, canvasHeight: canvasHeight)
+        context.saveGState()
+        context.clip(to: cgRect)                                      // text never leaves the caption area
+        var cursor = Double(canvasHeight) - topLeftTop                 // y up
+        if layout.titleLines > 0 {
+            let font = try CaptionLayout.font(path: caption.font, size: layout.titleSize, bold: true)
+            CaptionLayout.draw(layout.title, font: font, color: color, x: rect.minX, top: cursor,
+                               width: rect.width, height: layout.titleHeight, in: context)
+            cursor -= layout.titleHeight + layout.gap
+        }
+        if let subtitle = layout.subtitle {
+            let font = try CaptionLayout.font(path: caption.font, size: layout.subtitleSize, bold: false)
+            CaptionLayout.draw(subtitle, font: font, color: color, x: rect.minX, top: cursor,
+                               width: rect.width, height: layout.subtitleHeight, in: context)
+        }
+        context.restoreGState()
     }
 
     // MARK: - Geometry helpers
