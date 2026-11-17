@@ -104,9 +104,9 @@ public enum Appearance: String, Codable, Sendable { case light, dark }
 public enum LocaleCode { public static func split(_ code: String) -> (language: String, region: String?) }
 ```
 
-- [ ] **Step 1:** Der Zweig `v2` existiert bereits (von `origin/main` abgezweigt, enthält Plan und Design): `git switch v2`. Dann die 1.x-Dateien löschen.
-- [ ] **Step 2:** `Package.swift` schreiben: Produkte `.library("ScreenshotAutomator")`, `.executable("screenshots")`; Targets `ScreenshotProtocol`, `ScreenshotAutomator` (hängt an `ScreenshotProtocol`), `ScreenshotCore` (hängt an `ScreenshotProtocol`), `screenshots` (hängt an `ScreenshotCore`, `ArgumentParser`), Test-Targets `ScreenshotProtocolTests`, `ScreenshotCoreTests` (mit `resources: [.copy("Fixtures")]`).
-- [ ] **Step 3: Fehlschlagende Tests schreiben** in `ShotProtocolTests`:
+- [x] **Step 1:** Der Zweig `v2` existiert bereits (von `origin/main` abgezweigt, enthält Plan und Design): `git switch v2`. Dann die 1.x-Dateien löschen.
+- [x] **Step 2:** `Package.swift` schreiben: Produkte `.library("ScreenshotAutomator")`, `.executable("screenshots")`; Targets `ScreenshotProtocol`, `ScreenshotAutomator` (hängt an `ScreenshotProtocol`), `ScreenshotCore` (hängt an `ScreenshotProtocol`), `screenshots` (hängt an `ScreenshotCore`, `ArgumentParser`), Test-Targets `ScreenshotProtocolTests`, `ScreenshotCoreTests` (mit `resources: [.copy("Fixtures")]`).
+- [x] **Step 3: Fehlschlagende Tests schreiben** in `ShotProtocolTests`:
 ```swift
 #expect(ShotProtocol.attachmentName(for: "01_Home") == "sa2v2__01_Home")
 #expect(ShotProtocol.parse(attachmentName: "sa2v2__01_Home") == .shot("01_Home"))
@@ -117,9 +117,9 @@ public enum LocaleCode { public static func split(_ code: String) -> (language: 
 #expect(LocaleCode.split("de-DE") == ("de", "DE")); #expect(LocaleCode.split("zh-Hans") == ("zh-Hans", nil)); #expect(LocaleCode.split("fr") == ("fr", nil))
 ```
 (`LocaleCode`-Tests in `ScreenshotCoreTests/ModelTests.swift`. Regel: zweiter Teil aus genau zwei Großbuchstaben = Region.)
-- [ ] **Step 4:** `swift test` → schlägt fehl (Symbole fehlen). Implementieren. `swift test` → grün.
-- [ ] **Step 5:** `swift build` und `xcodebuild -scheme ScreenshotAutomator -destination 'generic/platform=iOS Simulator' build` → beide erfolgreich. Schlägt `import XCTest` im Bibliotheks-Target unter `swift build` fehl, `ScreenshotAutomator` per `#if canImport(XCTest)` kapseln und das hier vermerken.
-- [ ] **Step 6:** `ci.yml`: macOS-Runner, `swift build`, `swift test`. Commit `chore: v2 package skeleton and shot protocol`.
+- [x] **Step 4:** `swift test` → schlägt fehl (Symbole fehlen). Implementieren. `swift test` → grün.
+- [x] **Step 5:** `swift build` und `xcodebuild -scheme ScreenshotAutomator -destination 'generic/platform=iOS Simulator' build` → beide erfolgreich. Schlägt `import XCTest` im Bibliotheks-Target unter `swift build` fehl, `ScreenshotAutomator` per `#if canImport(XCTest)` kapseln und das hier vermerken.
+- [x] **Step 6:** `ci.yml`: macOS-Runner, `swift build`, `swift test`. Commit `chore: v2 package skeleton and shot protocol`.
 
 ### Task 2: Konfiguration laden und prüfen
 
@@ -154,7 +154,7 @@ public enum ConfigError: Error, Equatable { case unreadable(String); case invali
 public struct RGBA: Equatable, Sendable { public init?(hex: String) }   // "#RGB" und "#RRGGBB"
 ```
 
-- [ ] **Step 1: Fehlschlagende Tests.** Fixture lädt und liefert `languages == ["de-DE","en-US"]`, `targets[0].sizes.count == 5`, `style.frame == .outline`, Standardwerte `output == "screenshots"`, `appearances == [.light]`, `macCanvas == PixelSize(width: 2880, height: 1800)`. Dazu je ein Test, der genau ein `ConfigIssue` mit diesem `path` erwartet:
+- [x] **Step 1: Fehlschlagende Tests.** Fixture lädt und liefert `languages == ["de-DE","en-US"]`, `targets[0].sizes.count == 5`, `style.frame == .outline`, Standardwerte `output == "screenshots"`, `appearances == [.light]`, `macCanvas == PixelSize(width: 2880, height: 1800)`. Dazu je ein Test, der genau ein `ConfigIssue` mit diesem `path` erwartet:
 
 | Eingabe | `path` |
 |---|---|
@@ -169,8 +169,8 @@ public struct RGBA: Equatable, Sendable { public init?(hex: String) }   // "#RGB
 | Titel-Schlüssel `de`, Sprache `de-DE` (Review Focus 4) | `shots.01_Home.title.de` |
 | Titel für `de-DE`, fehlt für `en-US` (Review Focus 4) | `shots.01_Home.title.en-US` |
 
-- [ ] **Step 2:** `swift test --filter ConfigTests` → rot. Implementieren (eigene `init(from:)` für Standardwerte und `Background`). → grün.
-- [ ] **Step 3:** Commit `feat(core): config model with validation`.
+- [x] **Step 2:** `swift test --filter ConfigTests` → rot. Implementieren (eigene `init(from:)` für Standardwerte und `Background`). → grün.
+- [x] **Step 3:** Commit `feat(core): config model with validation`.
 
 ### Task 3: Größentabelle
 
@@ -198,8 +198,8 @@ Exakte Tabelle (Breite×Höhe):
 | `watch-series` | watchOS | watch | nein | 416×496, 396×484 |
 | `watch-se` | watchOS | watch | nein | 368×448 |
 
-- [ ] **Step 1: Tests:** `size(id: "iphone-duo-outer")?.pixelSizes == [PixelSize(width: 1398, height: 2034)]`; `size(id: "iphone-6.3")?.requiredWithinFamily == true`; alle IDs eindeutig; jede `pixelSizes`-Angabe ist Hochformat (`width < height`); `size(id: "iphone-6.7") == nil`.
-- [ ] **Step 2:** rot → implementieren → grün. Commit `feat(core): app store size table`.
+- [x] **Step 1: Tests:** `size(id: "iphone-duo-outer")?.pixelSizes == [PixelSize(width: 1398, height: 2034)]`; `size(id: "iphone-6.3")?.requiredWithinFamily == true`; alle IDs eindeutig; jede `pixelSizes`-Angabe ist Hochformat (`width < height`); `size(id: "iphone-6.7") == nil`.
+- [x] **Step 2:** rot → implementieren → grün. Commit `feat(core): app store size table`.
 
 ### Task 4: Gerätekatalog
 
@@ -224,7 +224,7 @@ public struct DeviceCatalog: Sendable {
 ```
 Quellen: `xcrun simctl list -j devicetypes` (Felder `name`, `identifier`, `productFamily`, `bundlePath`, `minRuntimeVersion`), `xcrun simctl list -j devices available` (Wörterbuch Laufzeit → Liste mit `udid`, `name`, `deviceTypeIdentifier`, `state`), `<bundlePath>/Contents/Resources/capabilities.plist` → `capabilities.displays[]` mit `displayType == "integrated"` (`deviceName`, `width`, `height`, `scale`, `cornerRadiusUL/UR/LL/LR`) und `capabilities.DeviceSupportsDynamicIsland`. Hat ein Gerät kein integriertes Display (Apple TV), ein Display `primary` aus `ScreenDimensionsCapability` (`main-screen-width/-height/-scale`) mit Radien 0 bilden.
 
-- [ ] **Step 1: Tests** gegen die Fixtures:
+- [x] **Step 1: Tests** gegen die Fixtures:
 ```swift
 let duo = try DeviceCatalog.parseCapabilities(fixture("capabilities-duo.plist"), name: "iPhone Duo")
 #expect(duo.displays.map(\.name) == ["primary", "primary-1"])
@@ -235,8 +235,8 @@ let tv = try DeviceCatalog.parseCapabilities(fixture("capabilities-appletv.plist
 #expect(tv.displays == [DisplaySpec(name: "primary", pixelSize: .init(width: 1920, height: 1080), scale: 1, cornerRadii: .init(upperLeft: 0, upperRight: 0, lowerLeft: 0, lowerRight: 0))])
 ```
 plus `load(shell:)` mit `FakeRunner`: liefert 3 Gerätetypen und 2 Simulatoren, `isBooted` korrekt aus `state == "Booted"`; ein Gerätetyp mit unlesbarer Plist wird übersprungen statt den Lauf abzubrechen.
-- [ ] **Step 2:** rot → implementieren → grün.
-- [ ] **Step 3:** Rauchtest gegen die echte Maschine: temporärer Test `DeviceCatalog.load(shell: ProcessRunner())` enthält einen Typ `iPhone Duo` mit zwei Displays. Danach als `.disabled("needs local Xcode")` markieren. Commit `feat(core): device catalog from simulator profiles`.
+- [x] **Step 2:** rot → implementieren → grün.
+- [x] **Step 3:** Rauchtest gegen die echte Maschine: temporärer Test `DeviceCatalog.load(shell: ProcessRunner())` enthält einen Typ `iPhone Duo` mit zwei Displays. Danach als `.disabled("needs local Xcode")` markieren. Commit `feat(core): device catalog from simulator profiles`.
 
 ### Task 5: Planer
 
@@ -261,8 +261,8 @@ public enum Planner { public static func plan(config: Config, catalog: DeviceCat
 ```
 Auswahlregel: Kandidaten sind Gerätetypen mit einem Display, dessen `pixelSize` in `size.pixelSizes` liegt (bei tvOS gegen `swapped` vergleichen) **und** für die ein Simulator existiert. Sortierung: Position der Pixelgröße in `size.pixelSizes`, dann höchste `minRuntimeVersion`, dann Name. Vom gewählten Typ der Simulator mit der höchsten `runtimeIdentifier`. `landscape` ist `true` für tvOS und macOS, sonst wenn die Größe in `target.landscape` steht. Reihenfolge der Läufe: Target → Größe → Sprache → Appearance.
 
-- [ ] **Step 1: Tests:** `iphone-6.3` wählt „iPhone 18 Pro" vor „iPhone 17 Pro"; `iphone-duo-outer` und `iphone-duo-inner` wählen denselben Simulator mit `display.name` `primary` bzw. `primary-1`; 2 Größen × 2 Sprachen × 2 Appearances = 8 Läufe in definierter Reihenfolge; `slug == "iphone-6.3_de-DE_light"`; ohne passenden Simulator `PlanError.noSimulator(size: "ipad-13", wanted: [2064×2752, 2048×2732])` — **auch wenn** ein iPad 11" installiert ist; `ipad-13` in einem tvOS-Target → `.wrongPlatform`; `mac` → `simulator == nil`, `landscape == true`; Filter `sizes: ["iphone-6.3"]` reduziert korrekt.
-- [ ] **Step 2:** rot → implementieren → grün. Commit `feat(core): capture planner`.
+- [x] **Step 1: Tests:** `iphone-6.3` wählt „iPhone 18 Pro" vor „iPhone 17 Pro"; `iphone-duo-outer` und `iphone-duo-inner` wählen denselben Simulator mit `display.name` `primary` bzw. `primary-1`; 2 Größen × 2 Sprachen × 2 Appearances = 8 Läufe in definierter Reihenfolge; `slug == "iphone-6.3_de-DE_light"`; ohne passenden Simulator `PlanError.noSimulator(size: "ipad-13", wanted: [2064×2752, 2048×2732])` — **auch wenn** ein iPad 11" installiert ist; `ipad-13` in einem tvOS-Target → `.wrongPlatform`; `mac` → `simulator == nil`, `landscape == true`; Filter `sizes: ["iphone-6.3"]` reduziert korrekt.
+- [x] **Step 2:** rot → implementieren → grün. Commit `feat(core): capture planner`.
 
 ---
 
