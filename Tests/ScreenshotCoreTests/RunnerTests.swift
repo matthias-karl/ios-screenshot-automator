@@ -173,6 +173,23 @@ import Testing
         #expect(!FileManager.default.fileExists(atPath: stale.path))
     }
 
+    @Test func hungTestRunIsRetriedOnce() throws {
+        let (env, target) = try makeEnv()
+        let attempts = Counter()
+        env.fake.stub(prefix: ["xcodebuild", "test-without-building"]) { _ in
+            attempts.increment() == 1 ? .failure(124, stderr: "command timed out") : .ok()
+        }
+        _ = try env.runner.capture(run(target, booted: true))
+        #expect(attempts.value == 2)
+    }
+
+    @Test func secondTimeoutIsAFailure() throws {
+        let (env, target) = try makeEnv()
+        env.fake.stub(prefix: ["xcodebuild", "test-without-building"], result: .failure(124, stderr: "command timed out"))
+        #expect(throws: RunnerError.self) { try env.runner.capture(run(target, booted: true)) }
+        #expect(env.fake.calls.filter { $0.starts(with: ["xcodebuild", "test-without-building"]) }.count == 2)
+    }
+
     // MARK: Arguments
 
     @Test func pathsAndSchemesWithSpacesStayOneArgument() throws {
@@ -232,4 +249,12 @@ import Testing
         #expect(calls.contains(["xcrun", "simctl", "privacy", Self.udid, "grant", "camera", "dev.example.Demo"]))
         #expect(calls.filter { $0.starts(with: ["xcodebuild", "-showBuildSettings"]) }.count == 1)
     }
+}
+
+final class Counter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+
+    @discardableResult func increment() -> Int { lock.withLock { count += 1; return count } }
+    var value: Int { lock.withLock { count } }
 }

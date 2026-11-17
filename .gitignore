@@ -61,3 +61,7 @@ fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 .DS_Store
+
+# screenshots tool output (Example)
+Example/screenshots/raw/
+Example/screenshots/.work/

@@ -3,11 +3,16 @@ import ScreenshotAutomator
 
 final class Screenshots: ScreenshotTestCase {
 
-    /// SwiftUI's `TabView` does not pass `accessibilityIdentifier` to the tab bar buttons
-    /// (the identifier ends up on the tab's content), so tabs are picked by position,
-    /// which is independent of the language.
+    /// SwiftUI's `TabView` does not pass `accessibilityIdentifier` to its tab buttons (it ends up on the
+    /// tab's content), so tabs are picked without identifiers of our own — independent of the language:
+    /// on iPhone by position in the tab bar, on iPad (floating tab bar without a `TabBar` element)
+    /// by the SF Symbol name the system uses as the button's identifier.
     private func selectTab(_ index: Int) {
-        let button = app.tabBars.buttons.element(boundBy: index)
+        let symbols = ["house.fill", "leaf.fill", "gearshape.fill"]
+        let tabBar = app.tabBars.firstMatch
+        let button = waitFor(tabBar, timeout: 3)
+            ? tabBar.buttons.element(boundBy: index)
+            : app.buttons[symbols[index]].firstMatch
         XCTAssertTrue(waitFor(button), "Tab \(index) not found")
         button.tap()
     }

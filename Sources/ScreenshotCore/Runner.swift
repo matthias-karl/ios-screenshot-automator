@@ -25,6 +25,9 @@ public struct Runner: Sendable {
         "--wifiBars", "3", "--cellularBars", "4",
     ]
 
+    /// Exit code `ProcessRunner` reports for a command it terminated after its timeout.
+    static let timeoutExitCode: Int32 = 124
+
     private let config: Config
     private let root: URL
     private let workDir: URL
@@ -41,6 +44,11 @@ public struct Runner: Sendable {
         self.workDir = workDir
         self.shell = shell
         self.log = log
+    }
+
+    /// Where `capture(_:)` writes the result bundle of a run (also after a failed test run).
+    public func resultBundleURL(for run: CaptureRun) -> URL {
+        workDir.appendingPathComponent("\(run.slug).xcresult")
     }
 
     // MARK: Build
@@ -62,7 +70,7 @@ public struct Runner: Sendable {
     /// Runs the UI tests for one run and returns the `.xcresult` bundle.
     public func capture(_ run: CaptureRun) throws -> URL {
         try FileManager.default.createDirectory(at: workDir, withIntermediateDirectories: true)
-        let resultBundle = workDir.appendingPathComponent("\(run.slug).xcresult")
+        let resultBundle = resultBundleURL(for: run)
         try? FileManager.default.removeItem(at: resultBundle)
         log("Capturing \(run.slug)…")
 
@@ -126,7 +134,13 @@ public struct Runner: Sendable {
             "TEST_RUNNER_SA2_LANDSCAPE": run.landscape ? "1" : "0",
             "TEST_RUNNER_SA2_APPEARANCE": run.appearance.rawValue,
         ]
-        let result = try shell.run("xcodebuild", arguments, environment: environment)
+        var result = try shell.run("xcodebuild", arguments, environment: environment)
+        if result.exitCode == Self.timeoutExitCode {
+            // xcodebuild sometimes hangs after the tests finished; one more attempt starts clean.
+            log("\(run.slug): xcodebuild timed out, trying once more…")
+            try? FileManager.default.removeItem(at: resultBundle)
+            result = try shell.run("xcodebuild", arguments, environment: environment)
+        }
         guard result.exitCode == 0 else {
             throw RunnerError.testFailed(slug: run.slug, logTail: Self.logTail(result))
         }
