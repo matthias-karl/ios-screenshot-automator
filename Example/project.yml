@@ -70,6 +70,37 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         TEST_TARGET_NAME: DemoTV
         CODE_SIGNING_ALLOWED: NO
+  DemoMac:
+    type: application
+    platform: macOS
+    deploymentTarget: "15.0"
+    sources: [DemoMac, Shared]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.example.screenshotdemo.DemoMac
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Demo
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGNING_ALLOWED: YES
+        CODE_SIGNING_REQUIRED: YES
+        ENABLE_APP_SANDBOX: NO
+  DemoMacUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    deploymentTarget: "15.0"
+    sources: [DemoMacUITests]
+    dependencies:
+      - target: DemoMac
+      - package: ios-screenshot-automator
+        product: ScreenshotAutomator
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.example.screenshotdemo.DemoMacUITests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: DemoMac
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGNING_ALLOWED: YES
+        CODE_SIGNING_REQUIRED: YES
 schemes:
   Demo:
     build:
@@ -85,3 +116,10 @@ schemes:
         DemoTVUITests: [test]
     test:
       targets: [DemoTVUITests]
+  DemoMac:
+    build:
+      targets:
+        DemoMac: all
+        DemoMacUITests: [test]
+    test:
+      targets: [DemoMacUITests]
