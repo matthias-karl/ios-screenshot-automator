@@ -64,3 +64,19 @@ vor dem ersten Test: `Failed to initialize for UI testing … Timed out while en
 requires user authentication to enable Automation Mode.“ Beides sind Systemeinstellungen, die eine Admin-Authentifizierung brauchen
 und nicht von der Automatisierung gesetzt werden dürfen. Damit ist offen: V2 (Fenster-Screenshot mit runden Ecken/Transparenz, Fenstergröße),
 die Tab-Navigation unter macOS, der Mac-Lauf und der Dunkelmodus-Lauf. Der Mac-Eintrag fehlt deshalb noch in `Example/screenshots.json`.
+
+### V1, Nachtrag: GUI-Skript für „aufklappen“ geprüft — nicht machbar
+
+Matthias wählte für das Innendisplay ein GUI-Skript (AppleScript/System Events gegen den Simulator). Auf diesem Mac (Xcode 27.1) scheitert das schon am Zielprogramm:
+`Simulator.app` gibt es nicht mehr; die Simulatoren gehören zu `DeviceHub.app` (`com.apple.dt.Devices`, nur ein `DevicesTrampoline` plus Prozess `DeviceHub`).
+Dieser Prozess hat für die Bedienungshilfen **kein Fenster und keine Menüleiste** (`count of windows` = 0, `menu bar 1` ungültig, auch nach `open`/`reopen`/`devices://`; per
+Computer-Use ebenfalls keine Fenster). Ein Skript hätte nichts zum Anklicken. Mit anderer Xcode-Version oder einer sichtbaren Oberfläche wäre es neu zu bewerten.
+
+**Gewählter Weg: manuell bereitstellen** (Spec 7, Regel 3). Ist das Duo gebootet **und aufgeklappt**, funktioniert alles weitere vollautomatisch:
+`screenshots run --size iphone-duo-inner` nutzt das laufende Gerät (der Runner bootet und beendet nur Geräte, die er selbst gestartet hat), Ergebnis: 2853×2007 px quer, 9:41.
+Dafür waren drei Korrekturen nötig, die jetzt im Code stecken:
+1. `XCUIScreen.screenshot()` des Innendisplays liefert das hochformatige Panel unrotiert (Inhalt 90° gedreht); `shot()` zeichnet das `UIImage` mit seiner Ausrichtung neu, **nur** wenn Bild- und Bitmapformat sich widersprechen.
+2. Der Runner dreht nur das Hauptdisplay (`XCUIDevice.orientation`); das aufgeklappte Duo zeigt das Innendisplay von sich aus quer.
+3. Die Rohgröße wird mit einem Pixel Toleranz geprüft (Punktgröße 668,67 × 3 wird zu 2006 abgeschnitten).
+In der Konfiguration gehört `"landscape": ["iphone-duo-inner"]` ins Target (Ausgabebild quer, 2853×2007; der Validator akzeptiert die gedrehte Größe).
+Ist das Gerät zugeklappt, schlägt `shot()` mit „The app is not running on display "primary-1" … Is the device open?“ fehl statt ein schwarzes Bild zu liefern.

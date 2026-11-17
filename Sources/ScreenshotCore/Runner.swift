@@ -140,7 +140,8 @@ public struct Runner: Sendable {
 
         let environment = [
             "TEST_RUNNER_SA2_DISPLAY": run.display?.name ?? "primary",
-            "TEST_RUNNER_SA2_LANDSCAPE": run.landscape ? "1" : "0",
+            // Only the primary display is rotated: the opened iPhone Duo already shows its inner display in landscape.
+            "TEST_RUNNER_SA2_LANDSCAPE": run.landscape && (run.display?.name ?? "primary") == "primary" ? "1" : "0",
             "TEST_RUNNER_SA2_APPEARANCE": run.appearance.rawValue,
         ]
         var result = try shell.run("xcodebuild", arguments, environment: environment)

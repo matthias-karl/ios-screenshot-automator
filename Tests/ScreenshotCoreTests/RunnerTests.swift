@@ -33,11 +33,12 @@ import Testing
 
     func run(
         _ target: Config.Target, sizeID: String = "iphone-6.3", language: String = "de-DE",
-        appearance: Appearance = .light, booted: Bool = false, mac: Bool = false, landscape: Bool = false
+        appearance: Appearance = .light, booted: Bool = false, mac: Bool = false, landscape: Bool = false,
+        displayName: String = "primary"
     ) -> CaptureRun {
         let size = StoreSizes.size(id: sizeID)!
         let sim = Simulator(udid: Self.udid, name: "iPhone 18 Pro", deviceTypeIdentifier: "t", runtimeIdentifier: "r", isBooted: booted)
-        let display = DisplaySpec(name: "primary", pixelSize: size.pixelSizes[0], scale: 3, cornerRadii: .zero)
+        let display = DisplaySpec(name: displayName, pixelSize: size.pixelSizes[0], scale: 3, cornerRadii: .zero)
         return CaptureRun(target: target, size: size, simulator: mac ? nil : sim, display: mac ? nil : display,
                           deviceTypeName: mac ? nil : "iPhone 18 Pro", hasDynamicIsland: false,
                           language: language, appearance: appearance, landscape: landscape)
@@ -104,6 +105,15 @@ import Testing
         #expect(environment["TEST_RUNNER_SA2_LANDSCAPE"] == "1")
         #expect(environment["TEST_RUNNER_SA2_APPEARANCE"] == "dark")
         #expect(env.fake.calls.contains(["xcrun", "simctl", "ui", Self.udid, "appearance", "dark"]))
+    }
+
+    @Test func secondaryDisplayIsNotRotated() throws {
+        // The opened iPhone Duo already shows the inner display in landscape; rotating again would turn the content sideways.
+        let (env, target) = try makeEnv()
+        _ = try env.runner.capture(run(target, sizeID: "iphone-duo-inner", booted: true, landscape: true, displayName: "primary-1"))
+        let index = try #require(env.fake.calls.firstIndex { $0.starts(with: ["xcodebuild", "test-without-building"]) })
+        #expect(env.fake.environments[index]["TEST_RUNNER_SA2_LANDSCAPE"] == "0")
+        #expect(env.fake.environments[index]["TEST_RUNNER_SA2_DISPLAY"] == "primary-1")
     }
 
     @Test func alreadyBootedSimulatorIsNeitherBootedNorShutDown() throws {

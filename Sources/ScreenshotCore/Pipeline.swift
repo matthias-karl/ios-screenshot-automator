@@ -335,7 +335,9 @@ public struct Pipeline: Sendable {
         if run.size.platform == .macOS { return nil }   // window screenshots have any size
         var allowed = run.size.pixelSizes.flatMap { [$0, $0.swapped] }
         if let display = run.display?.pixelSize { allowed += [display, display.swapped] }
-        guard !allowed.contains(actual) else { return nil }
+        // `XCUIScreen` derives pixels from fractional point sizes and may be one pixel short (iPhone Duo inner: 2852×2006).
+        let tolerance = 1
+        guard !allowed.contains(where: { abs($0.width - actual.width) <= tolerance && abs($0.height - actual.height) <= tolerance }) else { return nil }
         return "not a valid size for \(run.size.id). Is the wrong simulator booted?"
     }
 

@@ -71,9 +71,14 @@ open class ScreenshotTestCase: XCTestCase {
         let screenshot = screen.screenshot()
         #endif
 
+        #if os(iOS) || os(tvOS)
+        let png = Self.uprightPNG(screenshot)
+        #else
+        let png = screenshot.pngRepresentation
+        #endif
         let attachment = XCTAttachment(uniformTypeIdentifier: "public.png",
                                        name: ShotProtocol.attachmentName(for: name),
-                                       payload: screenshot.pngRepresentation)
+                                       payload: png)
         attachment.lifetime = .keepAlways
         add(attachment)
     }
@@ -101,6 +106,24 @@ open class ScreenshotTestCase: XCTestCase {
     public func waitFor(_ element: XCUIElement, timeout: TimeInterval = 5) -> Bool {
         element.waitForExistence(timeout: timeout)
     }
+
+    #if os(iOS) || os(tvOS)
+    /// `pngRepresentation` is the raw framebuffer. The inner display of an opened iPhone Duo is a portrait panel
+    /// that shows landscape content: the `UIImage` then reports a landscape size for a portrait bitmap and carries
+    /// the rotation as its orientation. Only in that case the image is redrawn upright; every other screenshot
+    /// is the framebuffer as it is.
+    private static func uprightPNG(_ screenshot: XCUIScreenshot) -> Data {
+        let image = screenshot.image
+        guard let bitmap = image.cgImage, (bitmap.width > bitmap.height) != (image.size.width > image.size.height) else {
+            return screenshot.pngRepresentation
+        }
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = image.scale
+        format.opaque = true
+        let renderer = UIGraphicsImageRenderer(size: image.size, format: format)
+        return renderer.pngData { _ in image.draw(in: CGRect(origin: .zero, size: image.size)) }
+    }
+    #endif
 
     #if !os(macOS) && !os(watchOS)
     /// The screen to capture: the one named by `SA2_DISPLAY` (`primary` = first screen, `primary-1` = second …).

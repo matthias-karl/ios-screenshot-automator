@@ -15,12 +15,15 @@ import Testing
     }
 
     static func exportSize(for slug: String) -> PixelSize {
-        slug.hasPrefix("ipad-13") ? PixelSize(width: 2064, height: 2752) : PixelSize(width: 1206, height: 2622)
+        if slug.hasPrefix("ipad-13") { return PixelSize(width: 2064, height: 2752) }
+        // XCUIScreen derives pixels from fractional points (668.67 pt × 3) and truncates: one pixel short.
+        if slug.hasPrefix("iphone-duo-inner") { return PixelSize(width: 2852, height: 2006) }
+        return PixelSize(width: 1206, height: 2622)
     }
 
     func makeProject(
         sizes: [String] = ["iphone-6.3"], languages: [String] = ["de-DE", "en-US"],
-        shotNames: [String] = ["01_Home", "02_Items"], extraTitles: [String] = []
+        shotNames: [String] = ["01_Home", "02_Items"], extraTitles: [String] = [], landscape: [String] = []
     ) throws -> Project {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("pipeline-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -29,7 +32,7 @@ import Testing
         })
         let json: [String: Any] = [
             "version": 2, "project": "Demo.xcodeproj",
-            "targets": [["platform": "iOS", "scheme": "Demo", "tests": "DemoUITests/Screenshots", "sizes": sizes]],
+            "targets": [["platform": "iOS", "scheme": "Demo", "tests": "DemoUITests/Screenshots", "sizes": sizes, "landscape": landscape]],
             "languages": languages, "shots": titles,
         ]
         try JSONSerialization.data(withJSONObject: json).write(to: dir.appendingPathComponent("screenshots.json"))
@@ -140,6 +143,15 @@ import Testing
         filter.sizes = ["iphone-6.3"]
         let result = try pipeline(project, shell: makeShell()).run(filter: filter)
         #expect(result.succeeded, "\(result.failures) \(result.issues)")
+    }
+
+    @Test func rawImageOneTruncatedPixelShortIsAccepted() throws {
+        let project = try makeProject(sizes: ["iphone-6.3", "iphone-duo-inner"], languages: ["en-US"], shotNames: ["01_Home"], landscape: ["iphone-duo-inner"])
+        var filter = RunFilter()
+        filter.sizes = ["iphone-duo-inner"]
+        let result = try pipeline(project, shell: makeShell(shotNames: ["01_Home"])).run(filter: filter)
+        #expect(result.succeeded, "\(result.failures) \(result.issues)")
+        #expect(try pixelSize(project.final.appendingPathComponent("en-US/iphone-duo-inner_01_Home.png")) == PixelSize(width: 2853, height: 2007))
     }
 
     // MARK: compose
