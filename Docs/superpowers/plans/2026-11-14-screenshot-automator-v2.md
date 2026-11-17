@@ -355,8 +355,8 @@ public enum Composer { public static func compose(_ r: ComposeRequest) throws ->
 ```
 Feste Werte: Außenrand 6 % der kürzeren Canvas-Seite. `deviceRect` passt den Screenshot seitenverhältnistreu in die Fläche unter/über dem Titelbereich und zentriert ihn. Linienstärke `outline` 0,6 % der kürzeren Geräteseite; Ringbreite `bezel` 2,2 % der Gerätebreite, äußerer Radius = innerer Radius + Ringbreite; `none` nur beschneiden. Der Screenshot wird immer mit den vier Einzelradien beschnitten. macOS: Screenshot unverändert (mit eigenem Alpha) zeichnen, dazu Schatten (Unschärfe 3 % der Canvas-Höhe, Schwarz 35 %), kein Rahmen. `writePNG` schreibt 8 Bit sRGB ohne Alphakanal. Dynamic Island: Zeigen die Rohbilder aus Aufgabe 6 Step 3 die Insel nicht (erwartet, sie ist Hardware), zeichnet der Composer bei `hasDynamicIsland`, Hochformat, `display.name == "primary"` und Stil `outline` oder `bezel` eine schwarze Kapsel: Breite 31 % der gezeichneten Gerätebreite, Höhe 9,2 % der Breite, Abstand von oben 3,5 % der Breite, horizontal zentriert. Zeigen die Rohbilder sie bereits, entfällt das.
 
-- [ ] **Step 1: Layout-Tests:** Screenshot 1206×2622 auf Canvas 1206×2622 ohne Titel → `deviceRect` hat Seitenverhältnis 1206/2622 (±0,001), ist zentriert, hält links ≥ 72 px Abstand; mit Titel oben beginnt `deviceRect` unterhalb `captionRect.maxY`; `cornerRadii` fürs Duo-Außendisplay bei `drawnWidth == 1398` → `(24, 177, 24, 177)`.
-- [ ] **Step 2: Composer-Tests** mit rotem Screenshot (`TestImage.solid`) auf weißem Hintergrund, `frame: .outline`, schwarz:
+- [x] **Step 1: Layout-Tests:** Screenshot 1206×2622 auf Canvas 1206×2622 ohne Titel → `deviceRect` hat Seitenverhältnis 1206/2622 (±0,001), ist zentriert, hält links ≥ 72 px Abstand; mit Titel oben beginnt `deviceRect` unterhalb `captionRect.maxY`; `cornerRadii` fürs Duo-Außendisplay bei `drawnWidth == 1398` → `(24, 177, 24, 177)`.
+- [x] **Step 2: Composer-Tests** mit rotem Screenshot (`TestImage.solid`) auf weißem Hintergrund, `frame: .outline`, schwarz:
   - Ergebnis ist exakt `canvas` groß; Pixel (0,0) weiß; Pixel in der Mitte von `deviceRect` rot.
   - Pixel auf der Mitte der oberen Gerätekante schwarz.
   - Duo außen: 3 px innerhalb der **rechten** oberen Ecke des `deviceRect` weiß (runde Ecke), 30 px innerhalb der **linken** oberen Ecke rot bzw. schwarz, nicht weiß.
@@ -366,7 +366,7 @@ Feste Werte: Außenrand 6 % der kürzeren Canvas-Seite. `deviceRect` passt den S
   - Verlauf `["#000000","#FFFFFF"]`, Winkel 90: Pixel oben Mitte und unten Mitte unterscheiden sich um > 200 je Kanal.
   - `writePNG` → erneut geladen: `alphaInfo` ist `.none` oder `.noneSkipLast`, Größe unverändert.
   - Farbe `"#12"` → `ComposeError.badColor("#12")`.
-- [ ] **Step 3:** rot → implementieren → grün. Commit `feat(core): layout and frame composer`.
+- [x] **Step 3:** rot → implementieren → grün. Commit `feat(core): layout and frame composer`.
 
 ### Task 9: Titel und eigene Rahmen-PNGs
 
@@ -380,9 +380,9 @@ public enum FrameImageError: Error, Equatable { case noTransparentScreen }
 ```
 Feste Werte: Titel fett, Startgröße 4,2 % der Canvas-Höhe; Untertitel normal, 2,6 %; höchstens 2 Titelzeilen und 1 Untertitelzeile; passt es nicht, in 5-%-Schritten bis 60 % der Startgröße verkleinern, danach mit „…" kürzen. Text zentriert, per CoreText gesetzt. Standardschrift ist die Systemschrift; `fontPath` lädt eine `.ttf`/`.otf`. `FrameImage.screenRect`: Rahmen zuerst in einen bekannten RGBA8-Kontext zeichnen, dann vom Bildmittelpunkt in alle vier Richtungen bis zum ersten Pixel mit Alpha > 200 laufen; ist der Mittelpunkt nicht transparent (Alpha ≥ 10) oder wird eine Kante nicht gefunden → Fehler. Bei `frame: .image` gilt: Rahmen seitenverhältnistreu einpassen, Screenshot in das gefundene Rechteck, Rahmen darüber; weicht das Seitenverhältnis des Rechtecks um mehr als 1 % vom Screenshot ab → `ComposeError.frameAspectMismatch`.
 
-- [ ] **Step 1: Titel-Tests:** kurzer Titel → `titleSize == 0.042 * canvasHeight`, `lines == 1`; Titel mit 120 Zeichen → `lines <= 2` und `titleSize >= 0.6 * 0.042 * canvasHeight` (Review Focus 5); Eingaben `"Gießen nicht vergessen 🌱"`, `"植物の水やりを忘れずに"`, `"لا تنسَ الري"` werfen nicht und liefern `lines >= 1` (Review Focus 5); im komponierten Bild mit weißem Titel auf schwarzem Hintergrund enthält `captionRect` mindestens einen weißen Pixel und der Bereich von `deviceRect` keinen Pixel aus dem Titel (Review Focus 5); `fontPath: "/nope.ttf"` → `ComposeError.fontUnreadable`.
-- [ ] **Step 2: Rahmen-Tests** mit erzeugtem Rahmen (schwarzes 400×800-Bild, transparentes Loch `x 20…379, y 30…769`): `screenRect == CGRect(x: 20, y: 30, width: 360, height: 740)`; vollständig deckendes Bild → `.noTransparentScreen`; Screenshot 100×100 in diesen Rahmen → `.frameAspectMismatch`.
-- [ ] **Step 3:** rot → implementieren → grün. Commit `feat(core): captions and custom frame images`.
+- [x] **Step 1: Titel-Tests:** kurzer Titel → `titleSize == 0.042 * canvasHeight`, `lines == 1`; Titel mit 120 Zeichen → `lines <= 2` und `titleSize >= 0.6 * 0.042 * canvasHeight` (Review Focus 5); Eingaben `"Gießen nicht vergessen 🌱"`, `"植物の水やりを忘れずに"`, `"لا تنسَ الري"` werfen nicht und liefern `lines >= 1` (Review Focus 5); im komponierten Bild mit weißem Titel auf schwarzem Hintergrund enthält `captionRect` mindestens einen weißen Pixel und der Bereich von `deviceRect` keinen Pixel aus dem Titel (Review Focus 5); `fontPath: "/nope.ttf"` → `ComposeError.fontUnreadable`.
+- [x] **Step 2: Rahmen-Tests** mit erzeugtem Rahmen (schwarzes 400×800-Bild, transparentes Loch `x 20…379, y 30…769`): `screenRect == CGRect(x: 20, y: 30, width: 360, height: 740)`; vollständig deckendes Bild → `.noTransparentScreen`; Screenshot 100×100 in diesen Rahmen → `.frameAspectMismatch`.
+- [x] **Step 3:** rot → implementieren → grün. Commit `feat(core): captions and custom frame images`.
 
 ### Task 10: Prüfung und Übersicht
 
@@ -400,8 +400,8 @@ public enum Report { public static func writeIndex(finalDir: URL, to url: URL) t
 ```
 Regeln: Enthält die Konfiguration eine iPhone-Größe, muss `iphone-6.3` dabei sein (Fehler); bei einer iPad-Größe `ipad-13` (Fehler); mehr als eine Watch-Größe → Fehler; fehlt eine Duo-Größe in einer iOS-Konfiguration → Warnung „ab April 2027 Pflicht für Apps mit iOS-27.1-SDK". Je Datei: Pixelgröße liegt in `size.pixelSizes` (oder `swapped`), bei `mac` gleich `config.macCanvas`; kein Alphakanal. Je Größe und Sprache 1–10 Bilder. Alle Sprachen haben dieselbe Menge an Shot-Namen.
 
-- [ ] **Step 1: Tests:** nur `iphone-6.9` konfiguriert → genau ein Fehler mit `iphone-6.3` im Text; iOS ohne Duo → eine Warnung, kein Fehler; `watch-ultra` + `watch-series` → Fehler; Datei mit 1000×1000 unter Namen `iphone-6.3_01_Home.png` → Fehler mit Dateiname; PNG mit Alpha → Fehler; 11 Bilder → Fehler; `de-DE` hat `03_Detail`, `en-US` nicht → Fehler nennt beide. `Report`: erzeugte `index.html` enthält je Bild ein `<img src="…">` mit relativem Pfad und je Sprache eine Überschrift.
-- [ ] **Step 2:** rot → implementieren → grün. Commit `feat(core): output validation and html index`.
+- [x] **Step 1: Tests:** nur `iphone-6.9` konfiguriert → genau ein Fehler mit `iphone-6.3` im Text; iOS ohne Duo → eine Warnung, kein Fehler; `watch-ultra` + `watch-series` → Fehler; Datei mit 1000×1000 unter Namen `iphone-6.3_01_Home.png` → Fehler mit Dateiname; PNG mit Alpha → Fehler; 11 Bilder → Fehler; `de-DE` hat `03_Detail`, `en-US` nicht → Fehler nennt beide. `Report`: erzeugte `index.html` enthält je Bild ein `<img src="…">` mit relativem Pfad und je Sprache eine Überschrift.
+- [x] **Step 2:** rot → implementieren → grün. Commit `feat(core): output validation and html index`.
 
 ---
 
