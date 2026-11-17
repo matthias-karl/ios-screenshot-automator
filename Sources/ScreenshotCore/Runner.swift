@@ -79,6 +79,12 @@ public struct Runner: Sendable {
             return resultBundle
         }
 
+        if run.target.platform == .tvOS && run.appearance == .dark {
+            throw RunnerError.setupFailed(
+                slug: run.slug, step: "appearance",
+                logTail: "tvOS simulators cannot switch appearance (simctl ui appearance is unsupported); use \"appearances\": [\"light\"] for tvOS targets.")
+        }
+
         // Review focus: only shut down what we booted ourselves, always clear the status bar override.
         var bootedByUs = false
         var statusBarOverridden = false
@@ -101,7 +107,9 @@ public struct Runner: Sendable {
             try simctl(run, "status_bar override", ["status_bar", simulator.udid, "override"] + Self.statusBarArguments)
             statusBarOverridden = true
         }
-        try simctl(run, "appearance", ["ui", simulator.udid, "appearance", run.appearance.rawValue])
+        if run.target.platform != .tvOS {
+            try simctl(run, "appearance", ["ui", simulator.udid, "appearance", run.appearance.rawValue])
+        }
 
         if !config.permissions.isEmpty {
             let bundleID = try appBundleID(for: run)
@@ -127,7 +135,8 @@ public struct Runner: Sendable {
             "-testLanguage", language,
         ]
         if let region { arguments += ["-testRegion", region] }
-        arguments += ["-parallel-testing-enabled", "NO", "-resultBundlePath", resultBundle.path]
+        // `-collect-test-diagnostics never`: xcodebuild otherwise runs `simctl diagnose` after the tests, which can hang for good.
+        arguments += ["-parallel-testing-enabled", "NO", "-collect-test-diagnostics", "never", "-resultBundlePath", resultBundle.path]
 
         let environment = [
             "TEST_RUNNER_SA2_DISPLAY": run.display?.name ?? "primary",

@@ -40,3 +40,18 @@ Simulator „iPhone Duo“ (iOS 27.1), Beispiel-App, Test mit `XCUIScreen.screen
 | (d) `simctl io <udid> screenshot --display=primary-1` | Liefert 2007×2853 bzw. 2853×2007 px. **Zugeklappt: schwarz.** Aufgeklappt: Inhalt der App. |
 
 **Folgerung.** Außendisplay (`iphone-duo-outer`) funktioniert vollautomatisch mit dem normalen Weg. Das Innendisplay verlangt, dass das Gerät **aufgeklappt** ist, und dafür gibt es keinen öffentlichen programmatischen Weg. Der „von außen“-Weg (`simctl io`) löst das Problem nicht, weil das Innendisplay zugeklappt schwarz bleibt. Umgesetzt ist die Bildschirmwahl im Test (`SA2_DISPLAY` → `XCUIScreen.screens[n]`, mit Prüfung, dass die App auf diesem Display läuft). Offene Entscheidung für Matthias: siehe Bericht zu Task 13.
+
+## Der Hänger von `xcodebuild` (Task 11/13/14) — Ursache gefunden
+
+Nach dem Ende der Tests blieb `xcodebuild test-without-building` gelegentlich für Minuten (tvOS: immer) hängen; das Ergebnisbündel
+stand dabei im Zustand `Staging`. `sample` auf den Prozess zeigt `XCTHRunDestinationAllocator.collectSimulatorDiagnostics →
+XCTHProcessInvocation.simCtlDiagnose`: `xcodebuild` startet nach dem Lauf `simctl diagnose` und wartet auf dessen Ende; dieser Prozess
+blieb in unseren Läufen hängen. **Abhilfe:** `-collect-test-diagnostics never`. Damit lief der Apple-TV-Lauf in 17 s durch (vorher
+> 10 min, abgebrochen). Der Runner übergibt die Option jetzt immer; Zeitlimit und einmalige Wiederholung bleiben als Sicherung.
+
+## tvOS (Task 14)
+
+- `simctl ui … appearance` wird von tvOS-Simulatoren abgelehnt („Runtime does not support userInterfaceStyle“). Der Runner setzt es
+  dort nicht und lehnt `dark` für tvOS-Targets mit klarer Meldung ab (`"appearances": ["light"]`).
+- Navigation im Beispiel: `XCUIRemote.shared.press(.right)`; im `TabView` wechselt der Inhalt, sobald der Tab den Fokus hat.
+  Der Inhalt erscheint dabei wie von tvOS gewohnt abgedunkelt (Fokus liegt auf der Tab-Leiste).

@@ -44,6 +44,32 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         TEST_TARGET_NAME: Demo
         CODE_SIGNING_ALLOWED: NO
+  DemoTV:
+    type: application
+    platform: tvOS
+    deploymentTarget: "18.0"
+    sources: [DemoTV, Shared]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.example.screenshotdemo.DemoTV
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Demo
+        CODE_SIGNING_ALLOWED: NO
+  DemoTVUITests:
+    type: bundle.ui-testing
+    platform: tvOS
+    deploymentTarget: "18.0"
+    sources: [DemoTVUITests]
+    dependencies:
+      - target: DemoTV
+      - package: ios-screenshot-automator
+        product: ScreenshotAutomator
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.example.screenshotdemo.DemoTVUITests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: DemoTV
+        CODE_SIGNING_ALLOWED: NO
 schemes:
   Demo:
     build:
@@ -52,3 +78,10 @@ schemes:
         DemoUITests: [test]
     test:
       targets: [DemoUITests]
+  DemoTV:
+    build:
+      targets:
+        DemoTV: all
+        DemoTVUITests: [test]
+    test:
+      targets: [DemoTVUITests]

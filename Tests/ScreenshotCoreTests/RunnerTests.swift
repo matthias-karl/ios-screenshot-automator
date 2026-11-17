@@ -49,7 +49,7 @@ import Testing
                     "-destination", destination, "-derivedDataPath", env.workDir.appendingPathComponent(derived).path,
                     "-only-testing:DemoUITests/Screenshots", "-testLanguage", language]
         if let region { argv += ["-testRegion", region] }
-        argv += ["-parallel-testing-enabled", "NO", "-resultBundlePath", env.workDir.appendingPathComponent("\(slug).xcresult").path]
+        argv += ["-parallel-testing-enabled", "NO", "-collect-test-diagnostics", "never", "-resultBundlePath", env.workDir.appendingPathComponent("\(slug).xcresult").path]
         return argv
     }
 
@@ -226,6 +226,26 @@ import Testing
         #expect(!calls.contains { $0.contains("status_bar") })
         #expect(calls.contains(testCall(env, destination: "platform=tvOS Simulator,id=\(Self.udid)",
                                         slug: "appletv_de-DE_light", derived: "dd-tvOS")))
+    }
+
+    @Test func tvOSLightRunDoesNotSetAppearance() throws {
+        // tvOS simulators reject `simctl ui … appearance` ("Runtime does not support userInterfaceStyle").
+        let (env, target) = try makeEnv(platform: .tvOS)
+        _ = try env.runner.capture(run(target, sizeID: "appletv"))
+        #expect(!env.fake.calls.contains { $0.starts(with: ["xcrun", "simctl", "ui"]) })
+    }
+
+    @Test func tvOSDarkRunFailsBeforeTouchingTheSimulator() throws {
+        let (env, target) = try makeEnv(platform: .tvOS)
+        do {
+            _ = try env.runner.capture(run(target, sizeID: "appletv", appearance: .dark))
+            Issue.record("expected an error")
+        } catch RunnerError.setupFailed(let slug, let step, let tail) {
+            #expect(slug == "appletv_de-DE_dark")
+            #expect(step == "appearance")
+            #expect(tail.contains("tvOS"))
+        }
+        #expect(env.fake.calls.isEmpty)
     }
 
     @Test func macOSRunUsesNoSimctl() throws {
