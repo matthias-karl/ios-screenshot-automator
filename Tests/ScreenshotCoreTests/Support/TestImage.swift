@@ -17,6 +17,18 @@ enum TestImage {
         return context.makeImage()!
     }
 
+    /// Like `solid`, but without an alpha channel.
+    static func opaque(_ size: PixelSize, _ color: RGBA) -> CGImage {
+        let context = CGContext(
+            data: nil, width: size.width, height: size.height, bitsPerComponent: 8, bytesPerRow: 0,
+            space: colorSpace, bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)!
+        context.setFillColor(CGColor(
+            colorSpace: colorSpace,
+            components: [CGFloat(color.red) / 255, CGFloat(color.green) / 255, CGFloat(color.blue) / 255, 1])!)
+        context.fill(CGRect(x: 0, y: 0, width: size.width, height: size.height))
+        return context.makeImage()!
+    }
+
     /// A black, fully opaque `size` image with a fully transparent rectangle (`hole`, top-left origin).
     static func frameWithHole(_ size: PixelSize, hole: CGRect) -> CGImage {
         let context = CGContext(

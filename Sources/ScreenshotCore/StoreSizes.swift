@@ -12,7 +12,7 @@ public struct StoreSize: Equatable, Sendable {
     /// Whether this size must be delivered when any size of its family is.
     public var requiredWithinFamily: Bool
 
-    public enum Family: String, Sendable {
+    public enum Family: String, CaseIterable, Sendable {
         case iPhone, iPad, appleTV, mac, watch
     }
 
