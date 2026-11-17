@@ -93,7 +93,8 @@ open class ScreenshotTestCase: XCTestCase {
             XCTFail("tap(id: \"\(id)\") called before launch().", file: file, line: line)
             return
         }
-        let element = app.descendants(matching: .any)[id]
+        // firstMatch: one control often exposes the same identifier on itself and a child (e.g. tab buttons and their symbols).
+        let element = app.descendants(matching: .any)[id].firstMatch
         guard waitFor(element, timeout: timeout) else {
             XCTFail("No element with accessibilityIdentifier \"\(id)\" appeared within \(timeout) s.", file: file, line: line)
             return

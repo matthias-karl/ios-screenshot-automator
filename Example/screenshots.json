@@ -6,8 +6,7 @@
       "platform": "iOS",
       "scheme": "Demo",
       "tests": "DemoUITests/Screenshots",
-      "sizes": ["iphone-6.3", "iphone-6.9", "iphone-duo-outer", "iphone-duo-inner", "ipad-13"],
-      "landscape": ["iphone-duo-inner"]
+      "sizes": ["iphone-6.3", "iphone-6.9", "iphone-duo-outer", "ipad-13"]
     },
     {
       "platform": "tvOS",
