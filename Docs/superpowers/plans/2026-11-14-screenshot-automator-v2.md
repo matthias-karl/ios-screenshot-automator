@@ -462,10 +462,10 @@ Jede Aufgabe beginnt mit ihrem Vorversuch aus Spec Abschnitt 9. Das Ergebnis kom
 
 **Files:** Modify `Sources/ScreenshotAutomator/ScreenshotTestCase.swift`, ggf. `Sources/ScreenshotCore/Runner.swift`, `Example/screenshots.json`
 
-- [ ] **Step 1: Vorversuch V1.** Mit dem Simulator „iPhone Duo" (iOS 27.1) klären und notieren: (a) Auf welchem Display zeigt die Beispiel-App nach dem Start? (b) Was liefert `XCUIScreen.screens` (Anzahl, Größen)? (c) Gibt es einen programmatischen Weg umzuschalten — `XCUIDevice`-API, `simctl`-Unterbefehl, Simulator-Menü (`Device ▸ …`) samt Tastenkürzel? (d) Liefert `xcrun simctl io <udid> screenshot --display=primary-1` das Innendisplay mit App-Inhalt?
-- [ ] **Step 2:** Weg nach der Entscheidungsregel in Spec Abschnitt 7 wählen und umsetzen. Variante „Test sieht beide Bildschirme": `shot()` wählt den Bildschirm, dessen Pixelgröße zu `SA2_DISPLAY` passt. Variante „von außen": `shot()` schreibt eine Markierung in die Testausgabe und der Runner nimmt per `simctl io` auf; das ist ein eigener, kleiner Entwurf — vor der Umsetzung kurz mit Matthias abstimmen.
-- [ ] **Step 3: Test:** Für den gewählten Weg ein Unit-Test der neuen Logik (z. B. Bildschirmauswahl nach `SA2_DISPLAY`).
-- [ ] **Step 4: Ende-zu-Ende:** `screenshots run --size iphone-duo-outer --size iphone-duo-inner` in `Example/`. Erwartet: Bilder mit 1398×2034 und 2007×2853; im Außenbild sind die linken Ecken fast eckig, die rechten rund. Bilder ansehen. Commit `feat: iPhone Duo outer and inner display`.
+- [x] **Step 1: Vorversuch V1.** Mit dem Simulator „iPhone Duo" (iOS 27.1) klären und notieren: (a) Auf welchem Display zeigt die Beispiel-App nach dem Start? (b) Was liefert `XCUIScreen.screens` (Anzahl, Größen)? (c) Gibt es einen programmatischen Weg umzuschalten — `XCUIDevice`-API, `simctl`-Unterbefehl, Simulator-Menü (`Device ▸ …`) samt Tastenkürzel? (d) Liefert `xcrun simctl io <udid> screenshot --display=primary-1` das Innendisplay mit App-Inhalt?
+- [x] **Step 2:** Weg nach der Entscheidungsregel in Spec Abschnitt 7 wählen und umsetzen. Variante „Test sieht beide Bildschirme": `shot()` wählt den Bildschirm, dessen Pixelgröße zu `SA2_DISPLAY` passt. Variante „von außen": `shot()` schreibt eine Markierung in die Testausgabe und der Runner nimmt per `simctl io` auf; das ist ein eigener, kleiner Entwurf — vor der Umsetzung kurz mit Matthias abstimmen.
+- [x] **Step 3: Test:** Für den gewählten Weg ein Unit-Test der neuen Logik (z. B. Bildschirmauswahl nach `SA2_DISPLAY`).
+- [x] **Step 4: Ende-zu-Ende:** `screenshots run --size iphone-duo-outer --size iphone-duo-inner` in `Example/`. Erwartet: Bilder mit 1398×2034 und 2007×2853; im Außenbild sind die linken Ecken fast eckig, die rechten rund. Bilder ansehen. Commit `feat: iPhone Duo outer and inner display`.
 
 ### Task 14: Apple TV
 
