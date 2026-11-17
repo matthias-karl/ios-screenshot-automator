@@ -302,19 +302,19 @@ Exakte Aufrufe des Runners (jeweils als Argument-Array):
 - Nachbereitung, auch im Fehlerfall: `xcrun simctl status_bar <udid> clear`; `xcrun simctl shutdown <udid>` **nur**, wenn der Runner diesen Simulator selbst gebootet hat.
 - Exit-Code ≠ 0 → `RunnerError` mit den letzten 40 Zeilen der Ausgabe.
 
-- [ ] **Step 1:** Beispiel-App anlegen: SwiftUI, `TabView` mit Tabs `tab.home`, `tab.items`, `tab.settings` (als `accessibilityIdentifier`), Liste → Detail, ein Sheet, feste Mock-Daten, Texte in `de` und `en` lokalisiert, reagiert auf `-SCREEN detail` (startet direkt im Detail). `project.yml` mit Targets `Demo` (iOS, iPhone+iPad) und `DemoUITests`, lokales Paket `..`. `cd Example && xcodegen generate`, `.xcodeproj` einchecken.
-- [ ] **Step 2:** `ScreenshotTestCase` implementieren; `Example/DemoUITests/Screenshots.swift` mit `testTabs()` (`01_Home`, `02_Items`, `04_Settings`) und `testDetail()` (`launch(extraArguments: ["-SCREEN","detail"])`, `03_Detail`).
-- [ ] **Step 3: Von Hand prüfen** (noch ohne Runner): `xcodebuild test -project Example/Demo.xcodeproj -scheme Demo -destination 'platform=iOS Simulator,name=iPhone 18 Pro' -only-testing:DemoUITests/Screenshots -parallel-testing-enabled NO -resultBundlePath /tmp/sa2.xcresult`, dann `xcrun xcresulttool export attachments --path /tmp/sa2.xcresult --output-path /tmp/sa2-out`. Erwartet: 4 PNG mit 1206×2622. `manifest.json` als `Tests/ScreenshotCoreTests/Fixtures/manifest.json` ablegen (Geräte-IDs anonymisieren). Weicht das Format von `suggestedHumanReadableName` von der Annahme in Aufgabe 1 ab, `ShotProtocol.parse` und dessen Test anpassen.
-- [ ] **Step 4: Fehlschlagende Runner-Tests** mit `FakeRunner`:
+- [x] **Step 1:** Beispiel-App anlegen: SwiftUI, `TabView` mit Tabs `tab.home`, `tab.items`, `tab.settings` (als `accessibilityIdentifier`), Liste → Detail, ein Sheet, feste Mock-Daten, Texte in `de` und `en` lokalisiert, reagiert auf `-SCREEN detail` (startet direkt im Detail). `project.yml` mit Targets `Demo` (iOS, iPhone+iPad) und `DemoUITests`, lokales Paket `..`. `cd Example && xcodegen generate`, `.xcodeproj` einchecken.
+- [x] **Step 2:** `ScreenshotTestCase` implementieren; `Example/DemoUITests/Screenshots.swift` mit `testTabs()` (`01_Home`, `02_Items`, `04_Settings`) und `testDetail()` (`launch(extraArguments: ["-SCREEN","detail"])`, `03_Detail`).
+- [x] **Step 3: Von Hand prüfen** (noch ohne Runner): `xcodebuild test -project Example/Demo.xcodeproj -scheme Demo -destination 'platform=iOS Simulator,name=iPhone 18 Pro' -only-testing:DemoUITests/Screenshots -parallel-testing-enabled NO -resultBundlePath /tmp/sa2.xcresult`, dann `xcrun xcresulttool export attachments --path /tmp/sa2.xcresult --output-path /tmp/sa2-out`. Erwartet: 4 PNG mit 1206×2622. `manifest.json` als `Tests/ScreenshotCoreTests/Fixtures/manifest.json` ablegen (Geräte-IDs anonymisieren). Weicht das Format von `suggestedHumanReadableName` von der Annahme in Aufgabe 1 ab, `ShotProtocol.parse` und dessen Test anpassen.
+- [x] **Step 4: Fehlschlagende Runner-Tests** mit `FakeRunner`:
   - Reihenfolge der Aufrufe für einen iOS-Lauf entspricht exakt der Liste oben.
   - Simulator war schon gebootet → kein `boot`, kein `shutdown`, aber `status_bar clear` (Review Focus 1).
   - Simulator vom Runner gebootet und `xcodebuild` schlägt fehl → `status_bar clear` und `shutdown` werden trotzdem aufgerufen, Fehler ist `.testFailed(slug:…)` (Review Focus 1).
   - Projektpfad `/tmp/My App/My App.xcodeproj`, Scheme `My App` → erscheinen als je ein unverändertes Argument (Review Focus 3).
   - `de-DE` → `-testLanguage de -testRegion DE`; `zh-Hans` → kein `-testRegion`.
   - tvOS-Lauf → kein `status_bar override`; macOS-Lauf → keinerlei `simctl`-Aufruf, Destination `platform=macOS`.
-- [ ] **Step 5:** rot → `ProcessRunner` und `Runner` implementieren → grün.
-- [ ] **Step 6: Vorversuch V4** (Statusleiste): Runner gegen die Beispiel-App laufen lassen; zeigen alle vier Rohbilder 9:41? Ergebnis in `Docs/superpowers/specs/2026-11-14-v2-spike-results.md` festhalten. Geht die Überschreibung beim App-Neustart verloren, im Runner zusätzlich unmittelbar vor `test-without-building` erneut setzen.
-- [ ] **Step 7:** Commit `feat: XCUITest base class, example app and capture runner`.
+- [x] **Step 5:** rot → `ProcessRunner` und `Runner` implementieren → grün.
+- [x] **Step 6: Vorversuch V4** (Statusleiste): Runner gegen die Beispiel-App laufen lassen; zeigen alle vier Rohbilder 9:41? Ergebnis in `Docs/superpowers/specs/2026-11-14-v2-spike-results.md` festhalten. Geht die Überschreibung beim App-Neustart verloren, im Runner zusätzlich unmittelbar vor `test-without-building` erneut setzen.
+- [x] **Step 7:** Commit `feat: XCUITest base class, example app and capture runner`.
 
 ### Task 7: Export aus dem Testergebnis
 
@@ -330,8 +330,8 @@ public enum Exporter { public static func export(xcresult: URL, run: CaptureRun,
 ```
 Ablauf: `xcrun xcresulttool export attachments --path <xcresult> --output-path <tmp>`; `manifest.json` ist ein Array von `{ testIdentifier, attachments: [{ exportedFileName, suggestedHumanReadableName }] }`. Zielordner `rawRoot/<size.id>/<language>-<appearance>/` wird vorher geleert; Dateien heißen `<name>.png`. Rückgabe nach Name sortiert.
 
-- [ ] **Step 1: Tests:** Fixture ergibt Namen `["01_Home","02_Items","03_Detail","04_Settings"]`; fremde Anhänge werden ignoriert; leeres Manifest → `.noShots(slug: "iphone-6.3_de-DE_light")` (Review Focus 2); zweimal `01_Home` → `.duplicateShot` (Review Focus 2); Anhang `sa2v3__x` → `.protocolMismatch(found: 3, expected: 2)`; alte Datei im Zielordner ist danach weg.
-- [ ] **Step 2:** rot → implementieren → grün. Commit `feat(core): export shots from xcresult`.
+- [x] **Step 1: Tests:** Fixture ergibt Namen `["01_Home","02_Items","03_Detail","04_Settings"]`; fremde Anhänge werden ignoriert; leeres Manifest → `.noShots(slug: "iphone-6.3_de-DE_light")` (Review Focus 2); zweimal `01_Home` → `.duplicateShot` (Review Focus 2); Anhang `sa2v3__x` → `.protocolMismatch(found: 3, expected: 2)`; alte Datei im Zielordner ist danach weg.
+- [x] **Step 2:** rot → implementieren → grün. Commit `feat(core): export shots from xcresult`.
 
 ---
 
