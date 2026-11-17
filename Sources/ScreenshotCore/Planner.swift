@@ -82,7 +82,7 @@ public enum Planner {
                         runs.append(CaptureRun(
                             target: target, size: size,
                             simulator: choice?.simulator, display: choice?.display,
-                            deviceTypeName: choice?.type.name, hasDynamicIsland: choice?.type.hasDynamicIsland ?? false,
+                            deviceTypeName: choice?.type.name, hasDynamicIsland: choice.map { $0.type.hasDynamicIsland && $0.type.displays.count == 1 } ?? false,
                             language: language, appearance: appearance, landscape: landscape))
                     }
                 }

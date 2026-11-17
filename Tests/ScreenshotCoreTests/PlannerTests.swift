@@ -81,6 +81,12 @@ import Testing
         #expect(runs[1].display?.name == "primary-1")
     }
 
+    @Test func foldableGetsNoDrawnIsland() throws {
+        // The island position of a two-display device is unknown, so none is drawn for it.
+        let runs = try plan(Self.config(sizes: ["iphone-duo-outer", "iphone-6.3"], languages: ["en-US"]))
+        #expect(runs.map(\.hasDynamicIsland) == [false, true])
+    }
+
     @Test func runsAreOrderedBySizeThenLanguageThenAppearance() throws {
         let runs = try plan(Self.config(sizes: ["iphone-6.3", "iphone-6.9"], appearances: [.light, .dark]))
         #expect(runs.count == 8)

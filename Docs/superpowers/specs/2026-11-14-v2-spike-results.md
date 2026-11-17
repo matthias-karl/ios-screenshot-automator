@@ -27,3 +27,16 @@ Vergleichsbild ohne Runner zeigt die Systemzeit und den Dunkelmodus des Simulato
 - **Hänger:** Ein `xcodebuild test`, das parallel zu `swift build`/`swift test` im selben Paket lief, blieb nach dem
   letzten Testfall stehen (Ergebnisbündel im Zustand `Staging`). Ohne Parallellauf trat es nicht auf. Der `Runner` hat
   derzeit keine Zeitüberschreitung.
+
+## V1 — iPhone Duo (Task 13)
+
+Simulator „iPhone Duo“ (iOS 27.1), Beispiel-App, Test mit `XCUIScreen.screens`, dazu `simctl io … --display=…`.
+
+| Frage | Ergebnis |
+|---|---|
+| (a) Auf welchem Display erscheint die App? | Nach dem Booten ist das Gerät **zugeklappt** (Hinge 0°): Außendisplay (`primary`, 1398×2034, 466×678 pt) ist an, das Innendisplay (`primary-1`) ist schwarz. Die App läuft auf dem Außendisplay, `XCUIScreen.main` ist das Außendisplay. **Aufgeklappt** (flach, 180°) läuft die App auf dem **Innendisplay**, dann im **Querformat** (Fenster 951×669 pt, Bild 2853×2007 px); `XCUIScreen.main.screenshot()` liefert dann weiterhin das (inaktive) Außendisplay. |
+| (b) `XCUIScreen.screens` | **Zwei** Bildschirme, Reihenfolge wie im Geräteprofil: `[0]` = `primary` (Außen), `[1]` = `primary-1` (Innen). `screens[i].screenshot()` liefert jeweils das ganze Display. |
+| (c) Programmatisch umschalten? | **Nicht gefunden.** Weder `simctl` (kein Unterbefehl; `simctl ui` kennt nur appearance, increase_contrast, content_size), noch `XCUIDevice`/`XCUIScreen` (keine API in den Headern), noch eine öffentliche CoreSimulator-/SimulatorKit-Schnittstelle. Die Hinge-Haltung ist nur in Simulator.app bedienbar (und über das Simulator-Werkzeug dieser Claude-Sitzung, das keine Xcode-Komponente ist). Sie bleibt **nicht** über `shutdown`/`boot` erhalten (danach wieder zugeklappt). |
+| (d) `simctl io <udid> screenshot --display=primary-1` | Liefert 2007×2853 bzw. 2853×2007 px. **Zugeklappt: schwarz.** Aufgeklappt: Inhalt der App. |
+
+**Folgerung.** Außendisplay (`iphone-duo-outer`) funktioniert vollautomatisch mit dem normalen Weg. Das Innendisplay verlangt, dass das Gerät **aufgeklappt** ist, und dafür gibt es keinen öffentlichen programmatischen Weg. Der „von außen“-Weg (`simctl io`) löst das Problem nicht, weil das Innendisplay zugeklappt schwarz bleibt. Umgesetzt ist die Bildschirmwahl im Test (`SA2_DISPLAY` → `XCUIScreen.screens[n]`, mit Prüfung, dass die App auf diesem Display läuft). Offene Entscheidung für Matthias: siehe Bericht zu Task 13.

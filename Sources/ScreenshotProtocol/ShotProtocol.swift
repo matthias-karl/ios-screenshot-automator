@@ -56,6 +56,17 @@ public enum ShotProtocol {
         return isValidShotName(rest) ? .shot(rest) : nil
     }
 
+    /// Index into `XCUIScreen.screens` for a simulator display name: `primary` → 0, `primary-1` → 1, …
+    /// (the order matches the display order of the device profile). `nil` if the name is not of that form.
+    public static func screenIndex(forDisplay name: String) -> Int? {
+        if name == "primary" { return 0 }
+        let prefix = "primary-"
+        guard name.hasPrefix(prefix) else { return nil }
+        let digits = name.dropFirst(prefix.count)
+        guard !digits.isEmpty, digits.unicodeScalars.allSatisfy({ $0 >= "0" && $0 <= "9" }) else { return nil }
+        return Int(digits)
+    }
+
     // MARK: - Helpers
 
     private static func isAlphanumeric(_ scalar: Unicode.Scalar) -> Bool {

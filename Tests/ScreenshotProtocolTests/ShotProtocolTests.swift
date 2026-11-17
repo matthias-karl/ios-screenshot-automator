@@ -30,3 +30,18 @@ import Testing
         #expect(!ShotProtocol.isValidShotName(""))
     }
 }
+
+@Suite struct DisplaySelectionTests {
+    @Test func displayNamesMapToScreenIndices() {
+        #expect(ShotProtocol.screenIndex(forDisplay: "primary") == 0)
+        #expect(ShotProtocol.screenIndex(forDisplay: "primary-1") == 1)
+        #expect(ShotProtocol.screenIndex(forDisplay: "primary-12") == 12)
+    }
+
+    @Test func unknownNamesHaveNoIndex() {
+        #expect(ShotProtocol.screenIndex(forDisplay: "external-0") == nil)
+        #expect(ShotProtocol.screenIndex(forDisplay: "primary-") == nil)
+        #expect(ShotProtocol.screenIndex(forDisplay: "primary--1") == nil)
+        #expect(ShotProtocol.screenIndex(forDisplay: "") == nil)
+    }
+}

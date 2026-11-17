@@ -62,15 +62,13 @@ open class ScreenshotTestCase: XCTestCase {
         }
         Thread.sleep(forTimeInterval: Self.settleDelay)
 
-        #if os(macOS) || os(watchOS)
-        let screenshot: XCUIScreenshot
         #if os(macOS)
-        screenshot = app.windows.firstMatch.screenshot()
+        let screenshot = app.windows.firstMatch.screenshot()
+        #elseif os(watchOS)
+        let screenshot = app.screenshot()
         #else
-        screenshot = app.screenshot()
-        #endif
-        #else
-        let screenshot = XCUIScreen.main.screenshot()
+        guard let screen = targetScreen(file: file, line: line) else { return }
+        let screenshot = screen.screenshot()
         #endif
 
         let attachment = XCTAttachment(uniformTypeIdentifier: "public.png",
@@ -104,6 +102,36 @@ open class ScreenshotTestCase: XCTestCase {
         element.waitForExistence(timeout: timeout)
     }
 
+    #if !os(macOS) && !os(watchOS)
+    /// The screen to capture: the one named by `SA2_DISPLAY` (`primary` = first screen, `primary-1` = second …).
+    /// Devices with two displays (iPhone Duo) list both in `XCUIScreen.screens`.
+    private func targetScreen(file: StaticString, line: UInt) -> XCUIScreen? {
+        let screens = XCUIScreen.screens
+        let name = ProcessInfo.processInfo.environment[ShotProtocol.Env.display] ?? "primary"
+        guard let index = ShotProtocol.screenIndex(forDisplay: name) else {
+            XCTFail("Unknown display \"\(name)\" in \(ShotProtocol.Env.display).", file: file, line: line)
+            return nil
+        }
+        guard index < screens.count else {
+            XCTFail("Display \"\(name)\" requested, but the device has only \(screens.count) screen(s).", file: file, line: line)
+            return nil
+        }
+        if index > 0 {
+            // A second display is dark unless the app runs on it (e.g. a closed iPhone Duo): refuse a black image.
+            let screenSize = screens[index].screenshot().image.size
+            let window = app.windows.firstMatch.frame.size
+            let sameShape = abs(window.width - screenSize.width) < 2 && abs(window.height - screenSize.height) < 2
+            guard sameShape else {
+                XCTFail("The app is not running on display \"\(name)\" (window \(Int(window.width))×\(Int(window.height)) pt, "
+                        + "that display \(Int(screenSize.width))×\(Int(screenSize.height)) pt). Is the device open?",
+                        file: file, line: line)
+                return nil
+            }
+        }
+        return screens[index]
+    }
+    #endif
+
     // MARK: - System dialogs
 
     /// Language-independent: taps the last button of any system dialog.
@@ -111,10 +139,15 @@ open class ScreenshotTestCase: XCTestCase {
         guard !interruptionMonitorInstalled else { return }
         interruptionMonitorInstalled = true
         addUIInterruptionMonitor(withDescription: "System dialog") { alert in
+            #if os(tvOS)
+            XCUIRemote.shared.press(.select)       // tvOS has no touch; the focused button is confirmed
+            return true
+            #else
             let buttons = alert.buttons
             guard buttons.count > 0 else { return false }
             buttons.element(boundBy: buttons.count - 1).tap()
             return true
+            #endif
         }
     }
 }

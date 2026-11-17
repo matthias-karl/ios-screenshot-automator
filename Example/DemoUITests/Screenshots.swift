@@ -3,26 +3,18 @@ import ScreenshotAutomator
 
 final class Screenshots: ScreenshotTestCase {
 
-    /// SwiftUI's `TabView` does not pass `accessibilityIdentifier` to its tab buttons (it ends up on the
-    /// tab's content), so tabs are picked without identifiers of our own — independent of the language:
-    /// on iPhone by position in the tab bar, on iPad (floating tab bar without a `TabBar` element)
-    /// by the SF Symbol name the system uses as the button's identifier.
-    private func selectTab(_ index: Int) {
-        let symbols = ["house.fill", "leaf.fill", "gearshape.fill"]
-        let tabBar = app.tabBars.firstMatch
-        let button = waitFor(tabBar, timeout: 3)
-            ? tabBar.buttons.element(boundBy: index)
-            : app.buttons[symbols[index]].firstMatch
-        XCTAssertTrue(waitFor(button), "Tab \(index) not found")
-        button.tap()
-    }
+    /// SwiftUI's `TabView` ignores an `accessibilityIdentifier` on its tabs (it ends up on the tab's content),
+    /// but the system exposes each tab button's SF Symbol name as its identifier on iPhone, iPad and iPhone Duo.
+    /// The demo therefore gives every tab a symbol of its own (not used elsewhere) and taps it by name,
+    /// which is independent of the language.
+    private enum Tab { static let home = "house.fill", items = "list.bullet", settings = "gearshape.fill" }
 
     func testTabs() {
         launch()
         shot("01_Home")
-        selectTab(1)
+        tap(id: Tab.items)
         shot("02_Items")
-        selectTab(2)
+        tap(id: Tab.settings)
         shot("04_Settings")
     }
 

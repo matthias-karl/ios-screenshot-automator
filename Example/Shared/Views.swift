@@ -10,7 +10,7 @@ struct RootView: View {
                 .accessibilityIdentifier("screen.home")
                 .tag("home")
             ItemsView()
-                .tabItem { Label("tab.items", systemImage: "leaf.fill") }
+                .tabItem { Label("tab.items", systemImage: "list.bullet") }
                 .accessibilityIdentifier("screen.items")
                 .tag("items")
             SettingsView()

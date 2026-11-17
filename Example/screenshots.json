@@ -6,7 +6,7 @@
       "platform": "iOS",
       "scheme": "Demo",
       "tests": "DemoUITests/Screenshots",
-      "sizes": ["iphone-6.3", "iphone-6.9", "ipad-13"]
+      "sizes": ["iphone-6.3", "iphone-6.9", "iphone-duo-outer", "ipad-13"]
     }
   ],
   "languages": ["de-DE", "en-US"],
