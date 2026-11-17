@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "project": "Demo.xcodeproj",
+  "targets": [
+    {
+      "platform": "iOS",
+      "scheme": "Demo",
+      "tests": "DemoUITests/Screenshots",
+      "sizes": ["iphone-6.3", "iphone-6.9", "ipad-13"]
+    }
+  ],
+  "languages": ["de-DE", "en-US"],
+  "appearances": ["light"],
+  "style": {
+    "background": { "gradient": ["#1f881b", "#79b474"], "angle": 135 },
+    "frame": "outline",
+    "caption": { "color": "#FFFFFF", "position": "top" }
+  },
+  "shots": {
+    "01_Home":     { "title": { "de-DE": "Alle Pflanzen im Blick", "en-US": "All your plants at a glance" } },
+    "02_Items":    { "title": { "de-DE": "Gießen nicht vergessen",  "en-US": "Never miss a watering" } },
+    "03_Detail":   { "title": { "de-DE": "Alles zu jeder Pflanze",  "en-US": "Everything about each plant" } },
+    "04_Settings": { "title": { "de-DE": "Einfach einstellbar",     "en-US": "Easy to set up" } }
+  },
+  "output": "screenshots"
+}

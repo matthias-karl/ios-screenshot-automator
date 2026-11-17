@@ -1,0 +1,50 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00000000-0000-0000-0000-000000000000",
+        "deviceName" : "iPhone 18 Pro",
+        "exportedFileName" : "2EB16FE8-323F-4EDF-82DA-ABB6B833015E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "sa2v2__03_Detail_0_69F47835-549F-4557-A597-48092EA0C4BD.png",
+        "timestamp" : 1794932496.824
+      }
+    ],
+    "testIdentifier" : "Screenshots/testDetail()",
+    "testIdentifierURL" : "test://com.apple.xcode/Demo/DemoUITests/Screenshots/testDetail"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00000000-0000-0000-0000-000000000000",
+        "deviceName" : "iPhone 18 Pro",
+        "exportedFileName" : "54BE5A3A-08E7-4BF2-A289-190B5BD0669B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "sa2v2__04_Settings_0_191F2DC7-FC3E-4A45-8AAE-806EF1C47BBB.png",
+        "timestamp" : 1794932511.262
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00000000-0000-0000-0000-000000000000",
+        "deviceName" : "iPhone 18 Pro",
+        "exportedFileName" : "DA6DD706-C4A8-450E-86E5-42574CB4C6B7.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "sa2v2__02_Items_0_7D5B0AA0-CFC1-436C-A04D-56B41BA36C33.png",
+        "timestamp" : 1794932507.38
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00000000-0000-0000-0000-000000000000",
+        "deviceName" : "iPhone 18 Pro",
+        "exportedFileName" : "E910DE19-B26F-4E45-8F09-310FA4A22E04.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "sa2v2__01_Home_0_3B75D76A-A0EE-49CD-9C12-47E8B23DC4C9.png",
+        "timestamp" : 1794932503.015
+      }
+    ],
+    "testIdentifier" : "Screenshots/testTabs()",
+    "testIdentifierURL" : "test://com.apple.xcode/Demo/DemoUITests/Screenshots/testTabs"
+  }
+]

@@ -1,0 +1,11 @@
+"tab.home" = "Start";
+"tab.items" = "Pflanzen";
+"tab.settings" = "Einstellungen";
+"home.headline" = "Deine Pflanzen heute";
+"detail.hint" = "Zuletzt gestern gegossen";
+"add.name" = "Name";
+"add.title" = "Neue Pflanze";
+"add.done" = "Fertig";
+"settings.reminders" = "Gießerinnerungen";
+"settings.compact" = "Kompakte Liste";
+"settings.about" = "Demo-App für ios-screenshot-automator";

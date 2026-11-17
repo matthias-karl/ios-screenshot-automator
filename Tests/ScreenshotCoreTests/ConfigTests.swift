@@ -32,6 +32,13 @@ import Testing
         #expect(config.issues().isEmpty)
     }
 
+    @Test func exampleConfigLoads() throws {
+        // Tests/ScreenshotCoreTests/ConfigTests.swift → repository root
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let config = try Config.load(from: root.appendingPathComponent("Example/screenshots.json"))
+        #expect(config.targets[0].scheme == "Demo")
+    }
+
     @Test func missingFileIsUnreadable() {
         let url = URL(fileURLWithPath: "/nonexistent/screenshots.json")
         #expect(throws: ConfigError.self) { try Config.load(from: url) }
