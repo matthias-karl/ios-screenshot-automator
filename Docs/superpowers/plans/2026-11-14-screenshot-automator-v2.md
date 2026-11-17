@@ -477,6 +477,8 @@ Jede Aufgabe beginnt mit ihrem Vorversuch aus Spec Abschnitt 9. Das Ergebnis kom
 
 ### Task 15: Mac
 
+> **Zurückgestellt (2026-11-17):** nicht Teil des ersten 2.0-Stands, siehe GitHub-Issue #6 (Mac braucht aktivierte UI-Automatisierung, Watch eine watchOS-Laufzeit). Schritte bleiben unabgehakt.
+
 **Files:** Modify `Example/project.yml`, `Sources/ScreenshotAutomator/ScreenshotTestCase.swift`; Create `Example/DemoMac/`, `Example/DemoMacUITests/Screenshots.swift`
 
 - [ ] **Step 1: Vorversuch V2.** Liefert `app.windows.firstMatch.screenshot()` das Fenster mit runden Ecken und Transparenz? Lässt sich die Fenstergröße festlegen (Startargument der App oder Ziehen per XCUITest)? Welche Berechtigungen fragt macOS ab? Notieren. Geht es nicht, die Ausweichlösung aus Spec Abschnitt 9 (`screencapture`) umsetzen.
@@ -484,6 +486,8 @@ Jede Aufgabe beginnt mit ihrem Vorversuch aus Spec Abschnitt 9. Das Ergebnis kom
 - [ ] **Step 3: Ende-zu-Ende:** `screenshots run --size mac` → Bilder 2880×1800, Fenster mit Schatten mittig, Titel darüber, kein Alphakanal. Zusätzlich `appearances: ["light","dark"]` → das `_dark`-Bild zeigt die dunkle Oberfläche. Ansehen. Commit `feat: Mac window capture`.
 
 ### Task 16: Apple Watch
+
+> **Zurückgestellt (2026-11-17):** nicht Teil des ersten 2.0-Stands, siehe GitHub-Issue #6 (Mac braucht aktivierte UI-Automatisierung, Watch eine watchOS-Laufzeit). Schritte bleiben unabgehakt.
 
 **Files:** Modify `Example/project.yml`; Create `Example/DemoWatch/`, `Example/DemoWatchUITests/Screenshots.swift`
 

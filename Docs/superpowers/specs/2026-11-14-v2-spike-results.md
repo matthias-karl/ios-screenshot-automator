@@ -56,14 +56,14 @@ blieb in unseren Läufen hängen. **Abhilfe:** `-collect-test-diagnostics never`
 - Navigation im Beispiel: `XCUIRemote.shared.press(.right)`; im `TabView` wechselt der Inhalt, sobald der Tab den Fokus hat.
   Der Inhalt erscheint dabei wie von tvOS gewohnt abgedunkelt (Fokus liegt auf der Tab-Leiste).
 
-## V2 — Mac (Task 15): blockiert durch fehlende UI-Automatisierung
+## V2 — Mac (Task 15): blockiert durch fehlende UI-Automatisierung (zurückgestellt, siehe Issue #6)
 
-Das macOS-Beispiel (`DemoMac`, `DemoMacUITests`, ad-hoc signiert, Fenster bei `-UITEST` fest 1280×800 pt) baut. Der UI-Testlauf scheitert aber
+Ein macOS-Beispiel (`DemoMac`, `DemoMacUITests`, ad-hoc signiert, Fenster bei `-UITEST` fest 1280×800 pt) baute; es wurde wieder aus dem Baum genommen und liegt in der Git-Historie (Commit „wip(example): macOS target“ auf `v2`). Der UI-Testlauf scheitert aber
 vor dem ersten Test: `Failed to initialize for UI testing … Timed out while enabling automation mode.`
 `DevToolsSecurity -status` meldet „Developer mode is currently disabled“, `automationmodetool` „Automation Mode is disabled. This device
 requires user authentication to enable Automation Mode.“ Beides sind Systemeinstellungen, die eine Admin-Authentifizierung brauchen
 und nicht von der Automatisierung gesetzt werden dürfen. Damit ist offen: V2 (Fenster-Screenshot mit runden Ecken/Transparenz, Fenstergröße),
-die Tab-Navigation unter macOS, der Mac-Lauf und der Dunkelmodus-Lauf. Der Mac-Eintrag fehlt deshalb noch in `Example/screenshots.json`.
+die Tab-Navigation unter macOS, der Mac-Lauf und der Dunkelmodus-Lauf. Mac und Watch sind aus dem ersten 2.0-Stand ausgeklammert und im Issue #6 festgehalten.
 
 ### V1, Nachtrag: GUI-Skript für „aufklappen“ geprüft — nicht machbar
 
