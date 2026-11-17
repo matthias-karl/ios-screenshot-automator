@@ -471,9 +471,9 @@ Jede Aufgabe beginnt mit ihrem Vorversuch aus Spec Abschnitt 9. Das Ergebnis kom
 
 **Files:** Modify `Example/project.yml`; Create `Example/DemoTV/`, `Example/DemoTVUITests/Screenshots.swift`; Modify `Example/screenshots.json`
 
-- [ ] **Step 1:** tvOS-Target `DemoTV` (nutzt `Example/Shared`), UI-Tests navigieren mit `XCUIRemote.shared.press(.right)` / `.select` und über `-SCREEN detail`. Zweiter Target-Eintrag in `screenshots.json` (`platform: "tvOS"`, `sizes: ["appletv"]`).
-- [ ] **Step 2:** `tap(id:)` auf tvOS: `XCTFail` mit Hinweis auf `XCUIRemote` (Tippen gibt es dort nicht). Unit-Test entfällt (reiner XCUITest-Code); Beleg ist Step 3.
-- [ ] **Step 3: Ende-zu-Ende:** `screenshots run --size appletv` → Bilder 1920×1080, Rahmenlinie ohne Eckenradius. Ansehen. Commit `feat: Apple TV example and capture`.
+- [x] **Step 1:** tvOS-Target `DemoTV` (nutzt `Example/Shared`), UI-Tests navigieren mit `XCUIRemote.shared.press(.right)` / `.select` und über `-SCREEN detail`. Zweiter Target-Eintrag in `screenshots.json` (`platform: "tvOS"`, `sizes: ["appletv"]`).
+- [x] **Step 2:** `tap(id:)` auf tvOS: `XCTFail` mit Hinweis auf `XCUIRemote` (Tippen gibt es dort nicht). Unit-Test entfällt (reiner XCUITest-Code); Beleg ist Step 3.
+- [x] **Step 3: Ende-zu-Ende:** `screenshots run --size appletv` → Bilder 1920×1080, Rahmenlinie ohne Eckenradius. Ansehen. Commit `feat: Apple TV example and capture`.
 
 ### Task 15: Mac
 
