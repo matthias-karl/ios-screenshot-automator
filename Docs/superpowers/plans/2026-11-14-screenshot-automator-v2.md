@@ -428,11 +428,11 @@ Verzeichnisse relativ zum Ordner der Konfiguration: `<output>/raw`, `<output>/fi
 
 Befehle (ArgumentParser, Root `screenshots`, Option `--config` mit Standard `./screenshots.json`): `run`, `compose` (beide mit `--size`, `--language`, `--scheme`, mehrfach angebbar), `check`, `sizes` (Tabelle: ID, Pflicht, Pixelgrößen, gewählter Simulator oder „nicht installiert"). Exit-Codes: 0 Erfolg, 1 Fehlschlag, 2 Konfigurationsfehler (jede `ConfigIssue` als `path: message`).
 
-- [ ] **Step 1: Tests** mit `FakeRunner`, der beim `xcresulttool`-Aufruf ein vorbereitetes Exportverzeichnis liefert: `run` erzeugt `final/de-DE/iphone-6.3_01_Home.png` in 1206×2622; scheitert einer von zwei Läufen, existieren die Bilder des anderen und `succeeded == false`; zweiter `compose` nach Entfernen eines Rohbilds lässt keine alte Datei in `final/` zurück; `check` mit fehlendem Simulator liefert `succeeded == false` und nennt die Größe; Titel für einen Shot ohne Rohbild → Fehler in `compose`, in `check` nur bei vorhandenem `raw/`.
-- [ ] **Step 2:** rot → implementieren → grün.
-- [ ] **Step 3:** `Scripts/install.sh`: `swift build -c release`, Verknüpfung `~/.local/bin/screenshots`, Hinweis falls `~/.local/bin` nicht im `PATH`.
-- [ ] **Step 4: Ende-zu-Ende:** `cd Example && ../.build/release/screenshots run --size iphone-6.3 --size ipad-13`. Erwartet: Exit 0; je Sprache 8 Dateien in `final/`; `index.html` öffnet; Bilder ansehen (Read-Tool) und auf Rahmen, Titel, 9:41 prüfen. Dann `Example/DemoUITests/Screenshots.swift` kurz so ändern, dass ein Test fehlschlägt → Exit 1, die Bilder des anderen Tests existieren; Änderung zurücknehmen.
-- [ ] **Step 5:** Commit `feat(cli): run, compose, check, sizes`.
+- [x] **Step 1: Tests** mit `FakeRunner`, der beim `xcresulttool`-Aufruf ein vorbereitetes Exportverzeichnis liefert: `run` erzeugt `final/de-DE/iphone-6.3_01_Home.png` in 1206×2622; scheitert einer von zwei Läufen, existieren die Bilder des anderen und `succeeded == false`; zweiter `compose` nach Entfernen eines Rohbilds lässt keine alte Datei in `final/` zurück; `check` mit fehlendem Simulator liefert `succeeded == false` und nennt die Größe; Titel für einen Shot ohne Rohbild → Fehler in `compose`, in `check` nur bei vorhandenem `raw/`.
+- [x] **Step 2:** rot → implementieren → grün.
+- [x] **Step 3:** `Scripts/install.sh`: `swift build -c release`, Verknüpfung `~/.local/bin/screenshots`, Hinweis falls `~/.local/bin` nicht im `PATH`.
+- [x] **Step 4: Ende-zu-Ende:** `cd Example && ../.build/release/screenshots run --size iphone-6.3 --size ipad-13`. Erwartet: Exit 0; je Sprache 8 Dateien in `final/`; `index.html` öffnet; Bilder ansehen (Read-Tool) und auf Rahmen, Titel, 9:41 prüfen. Dann `Example/DemoUITests/Screenshots.swift` kurz so ändern, dass ein Test fehlschlägt → Exit 1, die Bilder des anderen Tests existieren; Änderung zurücknehmen.
+- [x] **Step 5:** Commit `feat(cli): run, compose, check, sizes`.
 
 ### Task 12: Assistent `init`
 
@@ -448,9 +448,9 @@ public enum InitWizard { public static func run(info: ProjectInfo, catalog: Devi
 ```
 Fragen in dieser Reihenfolge: Scheme, UI-Test-Target, Größen (vorausgewählt: Pflichtgrößen plus jede Größe, für die ein Simulator installiert ist), Sprachen (Standard `en-US`), Rahmenstil (Standard `outline`), zwei Verlaufsfarben. Test-Gerüst: Klasse `Screenshots: ScreenshotTestCase` mit einer Methode `testScreens()` und einem `shot("01_Start")`. `gitignoreLines == ["<output>/raw/", "<output>/.work/"]`. `init` überschreibt weder eine vorhandene `screenshots.json` noch eine vorhandene Testdatei (Abbruch mit Hinweis) und gibt am Ende den Codeschnipsel für die vier Startargumente aus.
 
-- [ ] **Step 1: Tests** mit einem `ScriptedPrompt`: Eingaben ergeben eine `Config`, für die `issues()` leer ist; `tests == "DemoUITests/Screenshots"`; `testFileContents` enthält `import ScreenshotAutomator` und `shot("01_Start")`; `ProjectInspector` liest aus `xcodebuild -list -json`-Fixture zwei Schemes und ein UI-Test-Target.
-- [ ] **Step 2:** rot → implementieren → grün.
-- [ ] **Step 3: Von Hand:** in einer Kopie von `Example/` ohne `screenshots.json` `screenshots init` durchspielen, danach `screenshots check` → Exit 0. Commit `feat(cli): init wizard`.
+- [x] **Step 1: Tests** mit einem `ScriptedPrompt`: Eingaben ergeben eine `Config`, für die `issues()` leer ist; `tests == "DemoUITests/Screenshots"`; `testFileContents` enthält `import ScreenshotAutomator` und `shot("01_Start")`; `ProjectInspector` liest aus `xcodebuild -list -json`-Fixture zwei Schemes und ein UI-Test-Target.
+- [x] **Step 2:** rot → implementieren → grün.
+- [x] **Step 3: Von Hand:** in einer Kopie von `Example/` ohne `screenshots.json` `screenshots init` durchspielen, danach `screenshots check` → Exit 0. Commit `feat(cli): init wizard`.
 
 ---
 
