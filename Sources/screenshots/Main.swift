@@ -11,7 +11,7 @@ struct Screenshots: ParsableCommand {
         Exit codes: 0 success · 1 a requested image is missing or a check failed · 2 invalid configuration.
         """,
         version: "2.0.0",
-        subcommands: [Run.self, Compose.self, Check.self, Sizes.self]
+        subcommands: [Init.self, Run.self, Compose.self, Check.self, Sizes.self]
     )
 }
 
@@ -133,5 +133,84 @@ struct Sizes: ParsableCommand {
             let simulator = row.simulator ?? "not installed"
             Console.out("\(row.id.padding(toLength: width, withPad: " ", startingAt: 0))  \(marker)  \(sizes)\n    → \(simulator)")
         }
+    }
+}
+
+struct Init: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "Create screenshots.json and a UI-test scaffold for the app in the current folder.")
+
+    func run() throws {
+        let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let configURL = directory.appendingPathComponent("screenshots.json")
+        guard !FileManager.default.fileExists(atPath: configURL.path) else {
+            Console.err("error: screenshots.json already exists. Edit it, or delete it to start over.")
+            throw ExitCode(1)
+        }
+
+        let shell = ProcessRunner(timeout: 120)
+        let info: ProjectInfo
+        let catalog: DeviceCatalog
+        do {
+            info = try ProjectInspector.inspect(directory: directory, shell: shell)
+            catalog = try DeviceCatalog.load(shell: shell)
+        } catch {
+            Console.err("error: \(error)")
+            throw ExitCode(1)
+        }
+        Console.out("Project: \(info.container)\n")
+
+        let result = InitWizard.run(info: info, catalog: catalog, prompt: TerminalPrompt())
+
+        let testURL = directory.appendingPathComponent(result.testFilePath)
+        guard !FileManager.default.fileExists(atPath: testURL.path) else {
+            Console.err("error: \(result.testFilePath) already exists; nothing was written. Pick another UI test target or move the file.")
+            throw ExitCode(1)
+        }
+        try Data(InitWizard.configJSON(result.config).utf8).write(to: configURL)
+        try FileManager.default.createDirectory(at: testURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data(result.testFileContents.utf8).write(to: testURL)
+        Console.out("\n✓ screenshots.json written")
+        Console.out("✓ \(result.testFilePath) created (add it to the UI test target in Xcode, and add the ScreenshotAutomator package to that target)")
+
+        if TerminalPrompt().confirm("Add \(result.gitignoreLines.joined(separator: " and ")) to .gitignore?", default: true) {
+            let gitignore = directory.appendingPathComponent(".gitignore")
+            let existing = (try? String(contentsOf: gitignore, encoding: .utf8)) ?? ""
+            let missing = result.gitignoreLines.filter { !existing.contains($0) }
+            if !missing.isEmpty {
+                let separator = existing.isEmpty || existing.hasSuffix("\n") ? "" : "\n"
+                try (existing + separator + missing.joined(separator: "\n") + "\n").write(to: gitignore, atomically: true, encoding: .utf8)
+                Console.out("✓ .gitignore updated")
+            }
+        }
+        Console.out("\n\(InitWizard.launchArgumentsSnippet)\n")
+        Console.out("→ Next: screenshots run")
+    }
+}
+
+/// Questions on the terminal; an empty answer takes the default.
+struct TerminalPrompt: Prompting {
+    func ask(_ question: String, default fallback: String?) -> String {
+        FileHandle.standardOutput.write(Data((fallback.map { "\(question) [\($0)]: " } ?? "\(question): ").utf8))
+        let answer = readLine()?.trimmingCharacters(in: .whitespaces) ?? ""
+        return answer.isEmpty ? (fallback ?? "") : answer
+    }
+
+    func choose(_ question: String, options: [String], preselected: Set<Int>) -> Set<Int> {
+        Console.out(question)
+        for (index, option) in options.enumerated() {
+            Console.out("  \(index + 1)) [\(preselected.contains(index) ? "x" : " ")] \(option)")
+        }
+        FileHandle.standardOutput.write(Data("Numbers, comma separated (empty = keep the marked ones): ".utf8))
+        let answer = readLine()?.trimmingCharacters(in: .whitespaces) ?? ""
+        guard !answer.isEmpty else { return preselected }
+        let picked = answer.split(whereSeparator: { $0 == "," || $0 == " " }).compactMap { Int($0) }.map { $0 - 1 }
+        return Set(picked.filter { options.indices.contains($0) })
+    }
+
+    func confirm(_ question: String, default fallback: Bool) -> Bool {
+        FileHandle.standardOutput.write(Data("\(question) [\(fallback ? "Y/n" : "y/N")]: ".utf8))
+        let answer = (readLine() ?? "").trimmingCharacters(in: .whitespaces).lowercased()
+        return answer.isEmpty ? fallback : answer.hasPrefix("y")
     }
 }
