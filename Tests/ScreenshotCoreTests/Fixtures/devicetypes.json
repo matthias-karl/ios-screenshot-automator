@@ -1,0 +1,12 @@
+{
+  "devicetypes": [
+    { "name": "iPhone 18 Pro", "identifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro", "productFamily": "iPhone",
+      "bundlePath": "/fixtures/iPhone 18 Pro.simdevicetype", "minRuntimeVersion": 1769472 },
+    { "name": "iPhone Duo", "identifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-Duo", "productFamily": "iPhone",
+      "bundlePath": "/fixtures/iPhone Duo.simdevicetype", "minRuntimeVersion": 1769728 },
+    { "name": "Apple TV 4K (3rd generation) (at 1080p)", "identifier": "com.apple.CoreSimulator.SimDeviceType.Apple-TV-4K-3rd-generation-1080p", "productFamily": "Apple TV",
+      "bundlePath": "/fixtures/Apple TV.simdevicetype", "minRuntimeVersion": 1048832 },
+    { "name": "Broken Phone", "identifier": "com.apple.CoreSimulator.SimDeviceType.Broken", "productFamily": "iPhone",
+      "bundlePath": "/fixtures/missing.simdevicetype", "minRuntimeVersion": 1000000 }
+  ]
+}

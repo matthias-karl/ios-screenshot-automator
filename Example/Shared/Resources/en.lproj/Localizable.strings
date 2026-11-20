@@ -1,0 +1,11 @@
+"tab.home" = "Home";
+"tab.items" = "Plants";
+"tab.settings" = "Settings";
+"home.headline" = "Your plants today";
+"detail.hint" = "Last watered yesterday";
+"add.name" = "Name";
+"add.title" = "New plant";
+"add.done" = "Done";
+"settings.reminders" = "Watering reminders";
+"settings.compact" = "Compact list";
+"settings.about" = "Demo app for ios-screenshot-automator";

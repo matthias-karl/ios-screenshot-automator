@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>capabilities</key>
+	<dict>
+		<key>ScreenDimensionsCapability</key>
+		<dict>
+			<key>main-screen-height</key><string>1080</string>
+			<key>main-screen-orientation</key><integer>0</integer>
+			<key>main-screen-scale</key><integer>1</integer>
+			<key>main-screen-width</key><string>1920</string>
+		</dict>
+		<key>displays</key>
+		<array>
+			<dict>
+				<key>deviceName</key><string>TVOut</string>
+				<key>displayType</key><string>tvOut</string>
+				<key>width</key><integer>3840</integer>
+				<key>height</key><integer>2160</integer>
+				<key>scale</key><real>2</real>
+				<key>cornerRadiusUL</key><real>0</real>
+				<key>cornerRadiusUR</key><real>0</real>
+				<key>cornerRadiusLL</key><real>0</real>
+				<key>cornerRadiusLR</key><real>0</real>
+			</dict>
+		</array>
+	</dict>
+</dict>
+</plist>

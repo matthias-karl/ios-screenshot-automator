@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "project": "Plantner.xcodeproj",
+  "targets": [
+    {
+      "platform": "iOS",
+      "scheme": "Plantner",
+      "tests": "PlantnerUITests/Screenshots",
+      "sizes": ["iphone-6.3", "iphone-6.9", "iphone-duo-outer", "iphone-duo-inner", "ipad-13"]
+    }
+  ],
+  "languages": ["de-DE", "en-US"],
+  "appearances": ["light"],
+  "style": {
+    "background": { "gradient": ["#1f881b", "#79b474"], "angle": 135 },
+    "frame": "outline",
+    "caption": { "color": "#FFFFFF", "position": "top" }
+  },
+  "shots": {
+    "01_Home":   { "title": { "de-DE": "Alle Pflanzen im Blick", "en-US": "All your plants at a glance" } },
+    "02_Plants": { "title": { "de-DE": "Gießen nicht vergessen",  "en-US": "Never miss a watering" } }
+  },
+  "output": "screenshots"
+}

@@ -1,0 +1,8 @@
+{
+  "project": {
+    "configurations": ["Debug", "Release"],
+    "name": "Demo",
+    "schemes": ["Demo", "DemoWidget"],
+    "targets": ["Demo", "DemoUITests", "DemoWidget", "DemoTests"]
+  }
+}
