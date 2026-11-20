@@ -117,6 +117,43 @@ final class ScriptedPrompt: Prompting, @unchecked Sendable {
         }
     }
 
+    // MARK: Preset answers (agents, scripts: no terminal)
+
+    @Test func presetAnswersOverrideTheWizardDefaults() {
+        let answers = PresetAnswers(
+            scheme: "DemoWidget", uiTestTarget: "DemoUITests", sizes: ["iphone-6.3", "ipad-13"],
+            languages: ["de-DE", "en-US"], frame: "bezel", gradient: ["#000000", "#FFFFFF"])
+        let result = InitWizard.run(info: info, catalog: catalog(), prompt: answers)
+        #expect(result.config.targets[0].scheme == "DemoWidget")
+        #expect(result.config.targets[0].tests == "DemoUITests/Screenshots")
+        #expect(result.config.targets[0].sizes == ["iphone-6.3", "ipad-13"])
+        #expect(result.config.languages == ["de-DE", "en-US"])
+        #expect(result.config.style.frame == .bezel)
+        #expect(result.config.style.background == .gradient(["#000000", "#FFFFFF"], angle: 135))
+        #expect(result.config.issues().isEmpty)
+    }
+
+    @Test func presetAnswersWithoutValuesTakeTheDefaults() {
+        let result = InitWizard.run(info: info, catalog: catalog(), prompt: PresetAnswers())
+        #expect(result.config.targets[0].scheme == "Demo")
+        #expect(result.config.targets[0].tests == "DemoUITests/Screenshots")
+        #expect(result.config.targets[0].sizes.contains("iphone-6.3") && result.config.targets[0].sizes.contains("ipad-13"))
+        #expect(result.config.languages == ["en-US"])
+        #expect(result.config.style.frame == .outline)
+        #expect(result.config.issues().isEmpty)
+    }
+
+    @Test func presetAnswersCheckTheirValues() {
+        #expect(PresetAnswers(sizes: ["iphone-6.7"]).problems == ["unknown size \"iphone-6.7\" (see `screenshots sizes`)"])
+        #expect(PresetAnswers(sizes: ["appletv"]).problems == ["size \"appletv\" is not an iOS size; add tvOS, macOS and watchOS targets by hand"])
+        #expect(PresetAnswers(frame: "round").problems == ["frame must be one of outline, bezel, image, none"])
+        #expect(PresetAnswers(frame: "image").problems == ["frame image needs --frame-image <path>"])
+        #expect(PresetAnswers(gradient: ["#000000"]).problems == ["--gradient needs exactly two colors"])
+        #expect(PresetAnswers(gradient: ["#000000", "red"]).problems == ["\"red\" is not a color like #RRGGBB"])
+        #expect(PresetAnswers(languages: []).problems.isEmpty)
+        #expect(PresetAnswers().problems.isEmpty)
+    }
+
     // MARK: ProjectInspector
 
     func projectDir(_ entries: [String]) throws -> URL {

@@ -10,6 +10,7 @@ Everything about `screenshots.json`, the `screenshots` tool and the `ScreenshotA
 - [Output](#output)
 - [Test library](#test-library)
 - [Platform notes](#platform-notes)
+- [Coding agents](#coding-agents)
 - [Troubleshooting](#troubleshooting)
 - [Migrating from 1.x](#migrating-from-1x)
 
@@ -145,7 +146,7 @@ On macOS the window screenshot is drawn with a soft shadow on the canvas (16:10)
 
 | Command | Purpose |
 |---|---|
-| `screenshots init` | Asks for scheme, UI-test target, sizes, languages, frame style and two gradient colors; writes `screenshots.json` and `<UITestTarget>/Screenshots.swift`, offers to add `screenshots/raw/` and `screenshots/.work/` to `.gitignore`. Never overwrites an existing config or test file. The wizard offers iOS sizes; add tvOS/macOS/watchOS targets by hand. |
+| `screenshots init` | Asks for scheme, UI-test target, sizes, languages, frame style and two gradient colors; writes `screenshots.json` and `<UITestTarget>/Screenshots.swift`, offers to add `screenshots/raw/` and `screenshots/.work/` to `.gitignore`. Never overwrites an existing config or test file. The wizard offers iOS sizes; add tvOS/macOS/watchOS targets by hand. **Without a terminal or with `--yes` it asks nothing**: `--scheme`, `--ui-tests`, `--size` (repeatable), `--language` (repeatable), `--frame`, `--frame-image`, `--gradient` (twice) override the defaults, `--no-gitignore` leaves `.gitignore` alone; invalid values exit with 2. |
 | `screenshots run` | Capture, compose, validate, write `index.html`. Filters: `--size`, `--language`, `--scheme` (repeatable). |
 | `screenshots compose` | Rebuild final images from existing raw images. Starts no simulator. Same filters. |
 | `screenshots check` | Config, installed simulators, required sizes, texts without a matching shot (once `raw/` has images). Changes nothing. |
@@ -199,6 +200,10 @@ On a device with two displays `shot()` captures the display named by the tool (`
 - **Apple TV.** Landscape, outline without corner radius. No touch: navigate with `XCUIRemote.shared.press(…)` or start in a state with launch arguments. tvOS simulators cannot switch appearance, so only `light` is supported; `dark` fails with a clear message.
 - **Mac and Apple Watch.** Implemented and unit-tested but **not verified against a real run yet**; they need local setup (UI automation on the Mac, a watchOS runtime). See [issue #6](https://github.com/matthias-karl/ios-screenshot-automator/issues/6).
 - **Landscape.** List sizes in `landscape` to rotate the device (primary display only) and get landscape output.
+
+## Coding agents
+
+`skills/ios-screenshots/SKILL.md` is an agent skill (the `SKILL.md` format read by Claude Code, Codex and OpenCode): prerequisites, non-interactive setup, rules for writing the test, how to run and how to read failures. `Scripts/install.sh` links it into the global skill folders of the agents it finds (`~/.claude/skills`, `~/.codex/skills`, `~/.config/opencode/skills`); `--no-skill` skips that. Per project, copy it to `.claude/skills/ios-screenshots/` or `.agents/skills/ios-screenshots/`.
 
 ## Troubleshooting
 

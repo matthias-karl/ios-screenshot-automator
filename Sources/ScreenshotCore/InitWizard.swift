@@ -16,6 +16,18 @@ public struct InitResult: Equatable {
 
 /// Turns a few answers into `screenshots.json` and a UI-test scaffold.
 public enum InitWizard {
+    /// The questions in the order they are asked. `PresetAnswers` matches on these.
+    public enum Question {
+        public static let scheme = "Scheme"
+        public static let uiTestTarget = "UI test target"
+        public static let sizes = "Which sizes do you want?"
+        public static let languages = "Languages (App Store codes, comma separated)"
+        public static let frame = "Frame style (outline, bezel, image, none)"
+        public static let frameImage = "Frame image (PNG with transparent screen), path relative to screenshots.json"
+        public static let gradientStart = "Gradient start color (#RRGGBB)"
+        public static let gradientEnd = "Gradient end color (#RRGGBB)"
+    }
+
     public static let launchArgumentsSnippet = """
     // In your app, react to these launch arguments (set by ScreenshotTestCase):
     //   -UITEST              use mock data, no network, no real accounts
@@ -29,10 +41,10 @@ public enum InitWizard {
 
     public static func run(info: ProjectInfo, catalog: DeviceCatalog, prompt: Prompting) -> InitResult {
         // 1. Scheme and UI test target.
-        let schemeQuestion = info.schemes.isEmpty ? "Scheme" : "Scheme (\(info.schemes.joined(separator: ", ")))"
+        let schemeQuestion = info.schemes.isEmpty ? Question.scheme : "\(Question.scheme) (\(info.schemes.joined(separator: ", ")))"
         let scheme = nonEmpty(prompt.ask(schemeQuestion, default: info.schemes.first)) ?? info.schemes.first ?? "App"
         let uiDefault = info.uiTestTargets.first ?? "\(scheme)UITests"
-        let uiTarget = nonEmpty(prompt.ask("UI test target", default: uiDefault)) ?? uiDefault
+        let uiTarget = nonEmpty(prompt.ask(Question.uiTestTarget, default: uiDefault)) ?? uiDefault
 
         // 2. Sizes: required ones plus every size with an installed simulator (iOS sizes; other platforms are separate targets).
         let sizes = StoreSizes.all.filter { $0.platform == .iOS }
@@ -41,24 +53,24 @@ public enum InitWizard {
         for (index, size) in sizes.enumerated() where size.requiredWithinFamily || ((try? Planner.pick(size: size, catalog: catalog)) ?? nil) != nil {
             preselected.insert(index)
         }
-        let chosen = prompt.choose("Which sizes do you want?", options: options, preselected: preselected)
+        let chosen = prompt.choose(Question.sizes, options: options, preselected: preselected)
         let chosenSizes = chosen.sorted().filter { sizes.indices.contains($0) }.map { sizes[$0].id }
 
         // 3. Languages, frame, colors.
-        let languageAnswer = prompt.ask("Languages (App Store codes, comma separated)", default: "en-US")
+        let languageAnswer = prompt.ask(Question.languages, default: "en-US")
         var languages = languageAnswer.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
         if languages.isEmpty { languages = ["en-US"] }
 
         var frame = Config.Frame.outline
         for _ in 0..<3 {
-            let answer = prompt.ask("Frame style (outline, bezel, image, none)", default: "outline").trimmingCharacters(in: .whitespaces)
+            let answer = prompt.ask(Question.frame, default: "outline").trimmingCharacters(in: .whitespaces)
             if let parsed = Config.Frame(rawValue: answer.isEmpty ? "outline" : answer) { frame = parsed; break }
         }
         var frameImage: String?
-        if frame == .image { frameImage = nonEmpty(prompt.ask("Frame image (PNG with transparent screen), path relative to screenshots.json", default: nil)) }
+        if frame == .image { frameImage = nonEmpty(prompt.ask(Question.frameImage, default: nil)) }
 
-        let start = askColor("Gradient start color (#RRGGBB)", default: "#2B2B2F", prompt: prompt)
-        let end = askColor("Gradient end color (#RRGGBB)", default: "#5A5A63", prompt: prompt)
+        let start = askColor(Question.gradientStart, default: "#2B2B2F", prompt: prompt)
+        let end = askColor(Question.gradientEnd, default: "#5A5A63", prompt: prompt)
 
         // 4. Result.
         let config = Config(
@@ -162,5 +174,82 @@ public enum InitWizard {
             if RGBA(hex: answer) != nil { return answer }
         }
         return fallback
+    }
+}
+
+/// Answers for `InitWizard` without a terminal (coding agents, scripts, CI).
+/// Every value that is given wins; everything else takes the wizard's default.
+public struct PresetAnswers: Prompting {
+    public var scheme: String?
+    public var uiTestTarget: String?
+    public var sizes: [String]?
+    public var languages: [String]?
+    public var frame: String?
+    public var frameImage: String?
+    public var gradient: [String]?
+
+    public init(
+        scheme: String? = nil, uiTestTarget: String? = nil, sizes: [String]? = nil, languages: [String]? = nil,
+        frame: String? = nil, frameImage: String? = nil, gradient: [String]? = nil
+    ) {
+        self.scheme = scheme
+        self.uiTestTarget = uiTestTarget
+        self.sizes = sizes
+        self.languages = languages
+        self.frame = frame
+        self.frameImage = frameImage
+        self.gradient = gradient
+    }
+
+    /// Values that cannot be used; empty when everything is fine. Check before running the wizard.
+    public var problems: [String] {
+        var found: [String] = []
+        for id in sizes ?? [] {
+            guard let size = StoreSizes.size(id: id) else {
+                found.append("unknown size \"\(id)\" (see `screenshots sizes`)")
+                continue
+            }
+            if size.platform != .iOS {
+                found.append("size \"\(id)\" is not an iOS size; add tvOS, macOS and watchOS targets by hand")
+            }
+        }
+        if let frame {
+            if Config.Frame(rawValue: frame) == nil {
+                found.append("frame must be one of outline, bezel, image, none")
+            } else if frame == "image", (frameImage ?? "").isEmpty {
+                found.append("frame image needs --frame-image <path>")
+            }
+        }
+        if let gradient {
+            if gradient.count != 2 {
+                found.append("--gradient needs exactly two colors")
+            } else {
+                for color in gradient where RGBA(hex: color) == nil { found.append("\"\(color)\" is not a color like #RRGGBB") }
+            }
+        }
+        return found
+    }
+
+    public func ask(_ question: String, default fallback: String?) -> String {
+        let answer: String?
+        switch question {
+        case let q where q.hasPrefix(InitWizard.Question.scheme): answer = scheme
+        case InitWizard.Question.uiTestTarget: answer = uiTestTarget
+        case InitWizard.Question.languages: answer = (languages?.isEmpty ?? true) ? nil : languages!.joined(separator: ", ")
+        case InitWizard.Question.frame: answer = frame
+        case InitWizard.Question.frameImage: answer = frameImage
+        case InitWizard.Question.gradientStart: answer = gradient?.first
+        case InitWizard.Question.gradientEnd: answer = gradient?.dropFirst().first
+        default: answer = nil
+        }
+        return answer ?? fallback ?? ""
+    }
+
+    public func choose(_ question: String, options: [String], preselected: Set<Int>) -> Set<Int> {
+        guard question == InitWizard.Question.sizes, let sizes, !sizes.isEmpty else { return preselected }
+        // Options read "<size id> — <label>".
+        return Set(options.indices.filter { index in
+            sizes.contains { options[index].hasPrefix("\($0) —") }
+        })
     }
 }

@@ -138,9 +138,59 @@ struct Sizes: ParsableCommand {
 
 struct Init: ParsableCommand {
     static let configuration = CommandConfiguration(
-        abstract: "Create screenshots.json and a UI-test scaffold for the app in the current folder.")
+        abstract: "Create screenshots.json and a UI-test scaffold for the app in the current folder.",
+        discussion: """
+        Asks a few questions in a terminal. With --yes, or without a terminal (for example when a coding agent runs it), nothing is asked: given options win, everything else takes the defaults.
+
+        Example: screenshots init --yes --scheme MyApp --size iphone-6.3 --size ipad-13 --language en-US --language de-DE
+        """)
+
+    @Flag(help: "Do not ask; use the given options and the defaults.")
+    var yes = false
+
+    @Option(help: "Scheme that builds the app and runs the UI tests.")
+    var scheme: String?
+
+    @Option(name: .customLong("ui-tests"), help: "UI-test target that gets Screenshots.swift.")
+    var uiTests: String?
+
+    @Option(name: .customLong("size"), help: "iOS size ID (repeatable; default: required sizes plus every installed one).")
+    var sizes: [String] = []
+
+    @Option(name: .customLong("language"), help: "App Store language code (repeatable; default en-US).")
+    var languages: [String] = []
+
+    @Option(help: "Frame style: outline, bezel, image or none (default outline).")
+    var frame: String?
+
+    @Option(name: .customLong("frame-image"), help: "PNG with a transparent screen area, for --frame image.")
+    var frameImage: String?
+
+    @Option(name: .customLong("gradient"), help: "Background gradient, two colors: --gradient '#1f881b' --gradient '#79b474'.")
+    var gradient: [String] = []
+
+    @Flag(name: .customLong("no-gitignore"), help: "Do not add raw/ and .work/ to .gitignore.")
+    var noGitignore = false
+
+    var presets: PresetAnswers {
+        PresetAnswers(
+            scheme: scheme, uiTestTarget: uiTests, sizes: sizes.isEmpty ? nil : sizes,
+            languages: languages.isEmpty ? nil : languages, frame: frame, frameImage: frameImage,
+            gradient: gradient.isEmpty ? nil : gradient)
+    }
+
+    /// No questions with --yes, with any preset option, or when stdin is not a terminal.
+    var interactive: Bool {
+        !yes && scheme == nil && uiTests == nil && sizes.isEmpty && languages.isEmpty && frame == nil
+            && gradient.isEmpty && isatty(STDIN_FILENO) == 1
+    }
 
     func run() throws {
+        let problems = presets.problems
+        guard problems.isEmpty else {
+            for problem in problems { Console.err("error: \(problem)") }
+            throw ExitCode(2)
+        }
         let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let configURL = directory.appendingPathComponent("screenshots.json")
         guard !FileManager.default.fileExists(atPath: configURL.path) else {
@@ -160,7 +210,8 @@ struct Init: ParsableCommand {
         }
         Console.out("Project: \(info.container)\n")
 
-        let result = InitWizard.run(info: info, catalog: catalog, prompt: TerminalPrompt())
+        let prompt: Prompting = interactive ? TerminalPrompt() : presets
+        let result = InitWizard.run(info: info, catalog: catalog, prompt: prompt)
 
         let testURL = directory.appendingPathComponent(result.testFilePath)
         guard !FileManager.default.fileExists(atPath: testURL.path) else {
@@ -173,7 +224,10 @@ struct Init: ParsableCommand {
         Console.out("\n✓ screenshots.json written")
         Console.out("✓ \(result.testFilePath) created (add it to the UI test target in Xcode, and add the ScreenshotAutomator package to that target)")
 
-        if TerminalPrompt().confirm("Add \(result.gitignoreLines.joined(separator: " and ")) to .gitignore?", default: true) {
+        let addToGitignore = noGitignore ? false
+            : interactive ? TerminalPrompt().confirm("Add \(result.gitignoreLines.joined(separator: " and ")) to .gitignore?", default: true)
+            : true
+        if addToGitignore {
             let gitignore = directory.appendingPathComponent(".gitignore")
             let existing = (try? String(contentsOf: gitignore, encoding: .utf8)) ?? ""
             let missing = result.gitignoreLines.filter { !existing.contains($0) }

@@ -93,6 +93,12 @@ A minimal `screenshots.json`:
 
 Exit code 0 means success, 1 a missing image or failed check, 2 an invalid configuration.
 
+## Coding agents
+
+The skill [`skills/ios-screenshots`](skills/ios-screenshots/SKILL.md) teaches Claude Code, Codex, OpenCode and other agents that read `SKILL.md` how to set up, run and fix screenshots with this tool. `Scripts/install.sh` links it into `~/.claude/skills`, `~/.codex/skills` and `~/.config/opencode/skills` for every agent found (skip with `--no-skill`). For one project only, copy the folder to `.claude/skills/` (Claude Code) or `.agents/skills/` (Codex, OpenCode). Then ask, for example: *"Create App Store screenshots for this app in English and German."*
+
+`screenshots init` asks nothing when no terminal is attached or with `--yes`; pass `--scheme`, `--ui-tests`, `--size`, `--language`, `--frame`, `--gradient` to override the defaults.
+
 ## Example app
 
 `Example/` is a small SwiftUI app (iPhone, iPad, Apple TV) with a complete `screenshots.json`:

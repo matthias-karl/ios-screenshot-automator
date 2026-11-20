@@ -81,6 +81,17 @@ import Testing
         }
     }
 
+    @Test func agentSkillIsWellFormed() throws {
+        let skill = try read("skills/ios-screenshots/SKILL.md")
+        #expect(skill.hasPrefix("---\nname: ios-screenshots\n"), "frontmatter must start with the folder name")
+        #expect(skill.contains("\ndescription: "))
+        for command in ["screenshots init", "screenshots run", "screenshots compose", "screenshots check", "screenshots sizes"] {
+            #expect(skill.contains(command), "skill should mention \(command)")
+        }
+        #expect(skill.contains("--yes"), "skill should show the non-interactive init")
+        #expect(skill.components(separatedBy: "\n").count <= 200, "keep the skill short; details belong in Docs/Reference.md")
+    }
+
     @Test func oldDocumentsAreGone() {
         for file in ["Docs/QuickStart.md", "Docs/DeveloperHowto.md", "Docs/ScreenshotPipeline.md"] {
             #expect(!FileManager.default.fileExists(atPath: Self.root.appendingPathComponent(file).path), "\(file) should be deleted")
